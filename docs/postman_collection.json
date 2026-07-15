@@ -1,0 +1,49 @@
+{
+  "info": {
+    "name": "ReuseHub Prototype",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api" },
+    { "key": "itemId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": { "method": "GET", "url": "{{baseUrl}}/health" }
+    },
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Demo\",\n  \"lastName\": \"User\",\n  \"email\": \"demo@ucf.edu\",\n  \"password\": \"Prototype123\",\n  \"communityName\": \"UCF\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/register"
+      }
+    },
+    {
+      "name": "Create Item",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"TI-84 Calculator\",\n  \"description\": \"Working calculator\",\n  \"category\": \"School Supplies\",\n  \"condition\": \"Good\",\n  \"status\": \"Available to lend\",\n  \"visibility\": \"School\",\n  \"keywords\": [\"calculator\", \"ti-84\"]\n}"
+        },
+        "url": "{{baseUrl}}/items"
+      }
+    },
+    {
+      "name": "Interest Check",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{}" },
+        "url": "{{baseUrl}}/interest/items/{{itemId}}/check"
+      }
+    }
+  ]
+}

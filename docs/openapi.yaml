@@ -1,0 +1,172 @@
+openapi: 3.0.3
+info:
+  title: ReuseHub API
+  version: 0.2.0
+  description: Inventory, community search, authentication, and reuse-interest API.
+servers:
+  - url: https://YOUR_DOMAIN/api
+  - url: http://localhost:5000/api
+paths:
+  /health:
+    get:
+      summary: API health check
+      responses:
+        "200": { description: API is available }
+  /auth/register:
+    post:
+      summary: Register a local account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegisterRequest" }
+      responses:
+        "201": { description: Account created }
+        "409": { description: Email already exists }
+  /auth/verify-email:
+    post:
+      summary: Verify a local account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties: { token: { type: string } }
+      responses:
+        "200": { description: Email verified; session cookie created }
+  /auth/login:
+    post:
+      summary: Log in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200": { description: Logged in }
+        "401": { description: Invalid credentials }
+  /auth/google:
+    post:
+      summary: Log in with a Google ID token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [credential]
+              properties: { credential: { type: string } }
+      responses:
+        "200": { description: Logged in }
+  /auth/me:
+    get:
+      summary: Get current authenticated user
+      security: [{ cookieAuth: [] }]
+      responses:
+        "200": { description: Current user }
+        "401": { description: Not authenticated }
+  /profile:
+    get:
+      summary: Get profile and contact settings
+      security: [{ cookieAuth: [] }]
+      responses: { "200": { description: Profile } }
+    put:
+      summary: Update profile and contact visibility
+      security: [{ cookieAuth: [] }]
+      responses: { "200": { description: Updated profile } }
+  /items:
+    get:
+      summary: List authenticated user's items
+      security: [{ cookieAuth: [] }]
+      responses: { "200": { description: Item list } }
+    post:
+      summary: Create an item
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ItemInput" }
+      responses: { "201": { description: Item created } }
+  /items/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    get:
+      summary: Get a visible item
+      security: [{ cookieAuth: [] }]
+      responses: { "200": { description: Item }, "403": { description: Not visible } }
+    put:
+      summary: Update an owned item
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ItemInput" }
+      responses: { "200": { description: Item updated } }
+    delete:
+      summary: Delete an owned item
+      security: [{ cookieAuth: [] }]
+      responses: { "204": { description: Item deleted } }
+  /community/items:
+    get:
+      summary: Search public and same-school inventory
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: scope
+          schema: { type: string, enum: [community, public] }
+      responses: { "200": { description: Search results } }
+  /interest/items/{id}/check:
+    post:
+      summary: Create an interest snapshot for an owned item
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses: { "200": { description: Snapshot created } }
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: reusehub_token
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [firstName, lastName, email, password]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 10 }
+        communityName: { type: string }
+    ItemInput:
+      type: object
+      required: [title, category, condition, status]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        category: { type: string }
+        condition: { type: string }
+        status: { type: string }
+        quantity: { type: integer, minimum: 1 }
+        locationLabel: { type: string }
+        visibility: { type: string, enum: [Private, School, Public] }
+        keywords: { type: array, items: { type: string } }
+        imageUrl: { type: string, format: uri }
