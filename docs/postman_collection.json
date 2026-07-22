@@ -1,49 +1,676 @@
 {
   "info": {
-    "name": "ReuseHub Prototype",
+    "_postman_id": "8a2f7bb7-8016-4a0a-bbe9-7ddf35cce6fb",
+    "name": "ReuseHub API",
+    "description": "Complete ReuseHub API demonstration collection.\n\nProtected requests use `Authorization: Bearer {{accessToken}}` by default. Successful verification, login, Google login, and password reset requests automatically save `accessToken`. The collection also includes a cookie-only current-user request to demonstrate the React browser session.\n\nFor production use, set `baseUrl` to `https://YOUR_DOMAIN/api`. Do not commit real credentials or provider tokens.\n\nRecommended manual order: Health \u2192 Authentication \u2192 Profile \u2192 Inventory \u2192 Community \u2192 Interest \u2192 Cleanup. Do not run Google Login until `googleCredential` is populated and Google authentication is configured.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:5000/api" },
-    { "key": "itemId", "value": "" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "verificationToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "resetToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "googleCredential",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testEmail",
+      "value": "replace-with-real-email@example.com",
+      "type": "string"
+    },
+    {
+      "key": "testPassword",
+      "value": "Prototype123",
+      "type": "string"
+    },
+    {
+      "key": "newPassword",
+      "value": "NewPrototype123",
+      "type": "string"
+    }
   ],
   "item": [
     {
       "name": "Health",
-      "request": { "method": "GET", "url": "{{baseUrl}}/health" }
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"API reports ok\", function () { pm.expect(pm.response.json().status).to.eql(\"ok\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     },
     {
-      "name": "Register",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"firstName\": \"Demo\",\n  \"lastName\": \"User\",\n  \"email\": \"demo@ucf.edu\",\n  \"password\": \"Prototype123\",\n  \"communityName\": \"UCF\"\n}"
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Postman\",\n  \"lastName\": \"Student\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"communityName\": \"UCF\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "if (data.verificationToken) { pm.collectionVariables.set(\"verificationToken\", data.verificationToken); }"
+                ]
+              }
+            }
+          ]
         },
-        "url": "{{baseUrl}}/auth/register"
-      }
-    },
-    {
-      "name": "Create Item",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"title\": \"TI-84 Calculator\",\n  \"description\": \"Working calculator\",\n  \"category\": \"School Supplies\",\n  \"condition\": \"Good\",\n  \"status\": \"Available to lend\",\n  \"visibility\": \"School\",\n  \"keywords\": [\"calculator\", \"ti-84\"]\n}"
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/verify-email",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{verificationToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.expect(data.accessToken).to.be.a(\"string\").and.not.empty;",
+                  "pm.collectionVariables.set(\"accessToken\", data.accessToken);"
+                ]
+              }
+            }
+          ]
         },
-        "url": "{{baseUrl}}/items"
-      }
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.expect(data.accessToken).to.be.a(\"string\").and.not.empty;",
+                  "pm.collectionVariables.set(\"accessToken\", data.accessToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Google Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/google",
+            "description": "Set googleCredential to a current Google Identity Services ID token.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credential\": \"{{googleCredential}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200 when Google is configured and the credential is valid\", function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "if (data.accessToken) { pm.collectionVariables.set(\"accessToken\", data.accessToken); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/forgot-password",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "if (data.resetToken) { pm.collectionVariables.set(\"resetToken\", data.resetToken); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/reset-password",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"password\": \"{{newPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.expect(data.accessToken).to.be.a(\"string\").and.not.empty;",
+                  "pm.collectionVariables.set(\"accessToken\", data.accessToken);",
+                  "pm.collectionVariables.set(\"testPassword\", pm.collectionVariables.get(\"newPassword\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current User - Bearer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/auth/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"User is returned\", function () { pm.expect(pm.response.json().user).to.be.an(\"object\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current User - Cookie",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/auth/me",
+            "description": "Uses the Postman cookie jar rather than the collection Bearer token. Run Login or Verify Email first against the same baseUrl.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout Browser Session",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/auth/logout",
+            "description": "Clears the HTTP-only browser/Postman cookie. Native clients log out by deleting the locally stored access token.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     },
     {
-      "name": "Interest Check",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{}" },
-        "url": "{{baseUrl}}/interest/items/{{itemId}}/check"
-      }
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/profile"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/profile",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Postman\",\n  \"lastName\": \"Student\",\n  \"communityName\": \"UCF\",\n  \"contact\": {\n    \"emailVisible\": true,\n    \"phone\": \"\",\n    \"phoneVisible\": false,\n    \"preferredContact\": \"email\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        {
+          "name": "List My Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/items"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Demo Item\",\n  \"description\": \"Reusable item created from the ReuseHub Postman collection.\",\n  \"category\": \"Electronics\",\n  \"condition\": \"Good\",\n  \"status\": \"Available to lend\",\n  \"quantity\": 1,\n  \"locationLabel\": \"UCF\",\n  \"visibility\": \"School\",\n  \"keywords\": [\n    \"electronics\",\n    \"reuse\",\n    \"demo\"\n  ],\n  \"imageUrl\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "pm.expect(data.item).to.be.an(\"object\");",
+                  "pm.collectionVariables.set(\"itemId\", data.item.id || data.item._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Item",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/items/{{itemId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/items/{{itemId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Postman Demo Item\",\n  \"description\": \"Updated through the complete ReuseHub Postman collection.\",\n  \"category\": \"Electronics\",\n  \"condition\": \"Like New\",\n  \"status\": \"Available to give away\",\n  \"quantity\": 1,\n  \"locationLabel\": \"UCF\",\n  \"visibility\": \"Public\",\n  \"keywords\": [\n    \"electronics\",\n    \"reuse\",\n    \"updated\"\n  ],\n  \"imageUrl\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Community",
+      "item": [
+        {
+          "name": "Search Community Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/community/items?search=demo&scope=community&page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Interest",
+      "item": [
+        {
+          "name": "Check Item Interest",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/interest/items/{{itemId}}/check",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"keyword\": \"used electronics\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Snapshot is returned\", function () { pm.expect(pm.response.json().snapshot).to.be.an(\"object\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Interest History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/interest/items/{{itemId}}/history"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Snapshots array is returned\", function () { pm.expect(pm.response.json().snapshots).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cleanup",
+      "description": "Run cleanup only after community and interest demonstrations are complete.",
+      "item": [
+        {
+          "name": "Delete Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/items/{{itemId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
