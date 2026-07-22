@@ -34,7 +34,7 @@ The goal is architectural alignment rather than a line-for-line copy of the refe
 | External API/service layer | eBay, YouTube, SMTP, and Google authentication service integration points | Implemented in code; live credentials partly pending |
 | Automated backend testing | Jest, Supertest, MongoDB Memory Server, and mocked Express routers | Implemented; 7 suites and 18 tests pass |
 | Browser production build | TypeScript compilation and Vite production build | Implemented and verified |
-| Continuous integration | GitHub Actions workflow for install, lint, test, and build | Included; completion branch pushed and latest run pending confirmation |
+| Continuous integration | GitHub Actions workflow for install, lint, test, and build | Team and fork post-merge CI passed for `main` commit `4015240` |
 | Cloud deployment | DigitalOcean, MongoDB Atlas, PM2, and reverse proxy | Implemented with Apache in the current deployment |
 | Configuration templates | Root, client, and server lock files plus `.env.example` templates | Implemented |
 | API documentation | OpenAPI 3.0 contract and Postman v2.1 demonstration collection | Completed for all 19 implemented operations |
@@ -196,7 +196,6 @@ Manual validation has covered:
 The core architectural goals are met. The following work remains before a hardened production
 release or a broader course submission:
 
-- Confirm GitHub Actions CI for the current completion-branch commits
 - Add automated browser end-to-end tests if required
 - Configure and validate SMTP email delivery
 - Configure and validate Google Sign-In

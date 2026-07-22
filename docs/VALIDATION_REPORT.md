@@ -111,11 +111,12 @@ Installation and all validation still completed successfully.
 - Live eBay Browse API responses
 - Live YouTube Data API responses
 - HTTPS and secure production cookies
-- Latest GitHub Actions CI result for the current completion-branch commits
-- GitHub Actions deployment workflow
+- Live production promotion through the GitHub Actions deployment workflow
 
-The service modules or workflows are present, but credentials, remote execution, or HTTPS
-configuration remain pending.
+Team and fork post-merge CI passed for canonical team `main` commit `4015240`. The deployment
+workflow's validation job also passed, while production promotion was intentionally skipped
+because deployment remains gated and its secrets are not configured. Live service credentials,
+production promotion, and HTTPS configuration remain pending.
 
 ## Reproduction
 

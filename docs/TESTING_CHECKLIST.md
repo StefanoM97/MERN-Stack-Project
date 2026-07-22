@@ -152,8 +152,10 @@ sudo systemctl status apache2
 - [x] Exact sanitized clone passed `npm run check`
 - [x] Commit the tested source
 - [x] Push the feature branch
-- [ ] Confirm GitHub Actions CI passes
-- [ ] Open or merge the pull request
+- [x] Confirm GitHub Actions CI passes
+- [x] Open or merge the pull request
+- [x] Verify team and fork post-merge CI
+- [x] Verify deployment validation and safely skipped production promotion
 - [ ] Capture final screenshots or demo recording
 - [ ] Confirm team contribution documentation
 - [ ] Submit repository and deployment links
