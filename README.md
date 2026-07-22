@@ -20,6 +20,8 @@ As of July 22, 2026:
 - Formal Jest coverage is 75.06% statements, 56.19% branches, 74.28% functions, and 78.32% lines.
 - The TypeScript/Vite production build passes.
 - Manual desktop and mobile workflow tests pass at widths down to 320 pixels.
+- Pull request #1 merged successfully into the team `main` branch at commit `4015240`.
+- Team and fork post-merge CI passed; deployment validation passed and production promotion remained gated.
 
 See [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) for the implemented feature matrix,
 remaining deliverable work, and longer-term production work.
@@ -84,10 +86,9 @@ are unavailable.
 
 ### Before this deliverable is finalized
 
-- Commit and push the tested source to GitHub
-- Confirm the GitHub Actions CI run passes
 - Add final submission screenshots, demo evidence, and team attribution required by the rubric
-- Confirm whether the instructor requires live SMTP, Google, eBay, or YouTube credentials
+- Configure and validate the required live SMTP, Google, eBay, and YouTube integrations
+- Complete the required Flutter client
 - Submit the repository and deployment link in the required course format
 
 ### Before a production release

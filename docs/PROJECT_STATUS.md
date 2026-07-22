@@ -1,7 +1,7 @@
 # ReuseHub Project Status
 
-**Status date:** July 15, 2026
-**Current phase:** Tested MERN prototype with the completion branch pushed; CI confirmation, live integrations, HTTPS, mobile delivery, and final submission packaging remain
+**Status date:** July 22, 2026
+**Current phase:** Completion work merged into team `main` with post-merge CI verified; live integrations, HTTPS, Flutter, and final submission packaging remain
 
 ## Status summary
 
@@ -20,8 +20,8 @@ been configured.
 | Manual workflow testing | Complete for core workflows |
 | Mobile responsiveness | Verified at 390 px and 320 px |
 | Persistent cloud deployment | Working |
-| GitHub repository submission | Pending commit and push |
-| GitHub Actions CI execution | Pending first push |
+| GitHub repository submission | Pull request #1 merged into team `main` at `4015240` |
+| GitHub Actions CI execution | Team and fork post-merge CI passed |
 | Production integrations and HTTPS | Not yet configured |
 | Final course evidence/presentation | Pending rubric confirmation and packaging |
 
@@ -156,8 +156,8 @@ The exact sanitized Git working tree has passed:
 | Google Sign-In | Integration points implemented | No Google client ID; live sign-in not tested |
 | eBay Browse API | Implemented | No credentials; fallback tested |
 | YouTube Data API | Implemented | No API key; fallback tested |
-| GitHub Actions CI | Workflow included | Completion branch pushed; latest workflow result still to confirm |
-| GitHub Actions deployment | Manual workflow included | Deployment secrets not configured |
+| GitHub Actions CI | Workflow included | Team and fork post-merge CI passed |
+| GitHub Actions deployment | Staged Apache/PM2 workflow included | Validation passed; production promotion skipped because deployment remains gated |
 | Nginx deployment | Configuration included | Current server uses Apache instead |
 | Production secure cookie | Supported | Disabled because deployment is currently HTTP |
 | HTTPS | Supported by target architecture | Domain and certificate not configured |
@@ -166,12 +166,11 @@ The exact sanitized Git working tree has passed:
 
 These items are repository/submission tasks rather than missing core application workflows:
 
-1. Open or merge a pull request according to the team workflow.
-2. Confirm GitHub Actions completes successfully for the current completion branch.
-3. Capture final screenshots or a demo recording required by the course rubric.
-4. Update team attribution and task ownership.
-5. Configure and validate the Google, SMTP, eBay, and YouTube integrations required by the rubric.
-6. Submit the repository URL, deployment URL, and required supporting documents.
+1. Capture final screenshots or a demo recording required by the course rubric.
+2. Update team attribution and task ownership.
+3. Configure and validate the Google, SMTP, eBay, and YouTube integrations required by the rubric.
+4. Complete the required Flutter client.
+5. Submit the repository URL, deployment URL, and required supporting documents.
 
 ## Remaining work for the total project or a production release
 
