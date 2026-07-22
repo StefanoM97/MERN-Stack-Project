@@ -129,11 +129,11 @@ sudo systemctl status apache2
 
 ### Remaining production smoke tests
 
-- [ ] Domain DNS resolves correctly
-- [ ] HTTPS certificate is valid
-- [ ] HTTP redirects to HTTPS
-- [ ] Secure cookie works over HTTPS
-- [ ] Production CORS accepts only approved origins
+- [x] Domain DNS resolves correctly
+- [x] HTTPS certificate is valid
+- [x] HTTP redirects to HTTPS
+- [x] Secure cookie works over HTTPS
+- [x] Production CORS accepts only approved origins
 - [ ] SMTP verification email is delivered
 - [ ] SMTP password-reset email is delivered
 - [ ] Google Sign-In succeeds

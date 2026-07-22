@@ -104,19 +104,32 @@ This warning comes from Jest ES-module execution and did not affect the successf
 Some indirect development dependencies emitted npm deprecation warnings during installation.
 Installation and all validation still completed successfully.
 
+## Production HTTPS validation
+
+The live deployment at `https://reusehub.duckdns.org` has been validated with:
+
+- DuckDNS resolving to the DigitalOcean droplet
+- Apache name-based virtual hosting on ports 80 and 443
+- Valid publicly trusted TLS certificate
+- HTTP-to-HTTPS redirects for application and API routes
+- `NODE_ENV=production`
+- Secure HTTP-only authentication cookies with `SameSite=Lax`
+- Production CORS restricted to `https://reusehub.duckdns.org`
+- Successful login persistence, logout, and secure-cookie browser testing
+- Successful Certbot renewal dry run with an enabled renewal timer
+- Continued operation of the existing LAMP site and port-8080 fallback
+
 ## Not yet validated as live production integrations
 
 - SMTP email delivery
 - Google Sign-In
 - Live eBay Browse API responses
 - Live YouTube Data API responses
-- HTTPS and secure production cookies
 - Live production promotion through the GitHub Actions deployment workflow
 
 Team and fork post-merge CI passed for canonical team `main` commit `4015240`. The deployment
 workflow's validation job also passed, while production promotion was intentionally skipped
-because deployment remains gated and its secrets are not configured. Live service credentials,
-production promotion, and HTTPS configuration remain pending.
+because deployment remains gated and its secrets are not configured. Live service credentials and production promotion remain pending.
 
 ## Reproduction
 
