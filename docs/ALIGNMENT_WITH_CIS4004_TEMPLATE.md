@@ -146,22 +146,28 @@ coverage similar to the reference project is expected by the final rubric.
 ### Apache instead of Nginx in the validated deployment
 
 The repository includes Nginx-oriented deployment files, but the tested DigitalOcean droplet
-already hosted a LAMP application through Apache. ReuseHub was therefore deployed through a
-separate Apache virtual host on port 8080, preserving the existing site on port 80.
+already hosted a LAMP application through Apache. ReuseHub is therefore served through Apache
+name-based virtual hosts at `https://reusehub.duckdns.org`, while the existing LAMP site remains
+available through the default port-80 host. Port 8080 remains available as a temporary fallback.
 
 Current validated architecture:
 
 ```text
 Browser
-  -> Apache :8080
+  -> HTTP :80 redirects to HTTPS
+  -> Apache HTTPS :443 for reusehub.duckdns.org
      -> React files in /var/www/reusehub/client/dist
      -> /api requests proxied to 127.0.0.1:5000
-        -> Express/PM2
+        -> Express/PM2 in production mode
            -> MongoDB Atlas
+
+Default IP/port-80 requests
+  -> Existing LAMP application
 ```
 
-Nginx remains an alternative for a fresh server. The existing Nginx bootstrap and update scripts
-must not be run unchanged on the current Apache/LAMP droplet.
+Nginx remains an alternative for a fresh server. `deploy/bootstrap-ubuntu.sh` is Nginx-specific and
+must not be run unchanged on the Apache/LAMP droplet. `deploy/deploy-update.sh` is Apache-compatible
+and supports staged promotion, health validation, and rollback.
 
 ## Validation evidence
 
@@ -190,6 +196,11 @@ Manual validation has covered:
 - Persistence after a droplet reboot
 - Responsive behavior at 390 px and 320 px
 - Continued operation of the existing port-80 LAMP site
+- Public DNS resolution for `reusehub.duckdns.org`
+- Trusted HTTPS certificate and HTTP-to-HTTPS redirects
+- Secure HTTP-only production cookies and login persistence
+- Production-only CORS allowlisting
+- Successful Certbot renewal dry run
 
 ## Alignment gaps and remaining work
 
@@ -200,8 +211,6 @@ release or a broader course submission:
 - Configure and validate SMTP email delivery
 - Configure and validate Google Sign-In
 - Configure and validate live eBay and YouTube responses
-- Add a domain and HTTPS
-- Run in production mode with secure cookies and production-only CORS origins
 - Add managed image upload/storage rather than relying only on image URLs
 - Complete Lighthouse/accessibility and additional browser testing
 - Complete any presentation, demonstration, attribution, or mobile deliverables required by the rubric

@@ -1,20 +1,21 @@
 # Windows 11 to DigitalOcean: ReuseHub Implementation and Deployment Guide
 
-**Last updated:** July 15, 2026
-**Current validated deployment:** Ubuntu 24.04, Apache, PM2, MongoDB Atlas, and a React production build
+**Last updated:** July 22, 2026
+**Current validated deployment:** Ubuntu 24.04, Apache, PM2, MongoDB Atlas, React production build, DuckDNS, and HTTPS
 
 ## Read this first
 
 This guide separates two deployment paths:
 
-1. **The current validated deployment**, which reuses an existing Apache/LAMP droplet and exposes
-   ReuseHub on port 8080.
-2. **The recommended production upgrade**, which adds a domain, HTTPS, secure cookies, production
-   integrations, and a non-root deployment workflow.
+1. **The current validated production deployment**, which reuses an existing Apache/LAMP droplet
+   and serves ReuseHub at `https://reusehub.duckdns.org`.
+2. **The legacy port-8080 fallback and remaining hardening work**, including production integrations,
+   monitoring, backups, and a non-root deployment workflow.
 
-The repository also contains Nginx-oriented scripts. Do **not** run
-`deploy/bootstrap-ubuntu.sh` or `deploy/deploy-update.sh` unchanged on the current Apache/LAMP
-droplet. Those scripts install or reload Nginx and are intended for a fresh Nginx-based server.
+The repository contains a Nginx-oriented bootstrap script. Do **not** run
+`deploy/bootstrap-ubuntu.sh` unchanged on the current Apache/LAMP droplet; it installs Nginx and is
+intended for a fresh Nginx-based server. The staged `deploy/deploy-update.sh` script is
+Apache-compatible and is used by the gated GitHub Actions deployment workflow.
 
 Never paste passwords, Atlas connection strings, JWT secrets, API credentials, or private SSH keys
 into documentation, screenshots, chat messages, Git commits, or terminal logs.
@@ -509,34 +510,40 @@ Confirm Atlas data still exists and the existing LAMP site still responds.
 
 # Part IV — Upgrade to a production deployment
 
-## 19. Add a domain and HTTPS
+## 19. Add a domain and HTTPS — completed
 
-A domain allows Apache name-based virtual hosting so the existing LAMP site and ReuseHub can coexist
-on ports 80 and 443.
+The validated deployment uses `reusehub.duckdns.org`. Apache name-based virtual hosting allows the
+existing LAMP site and ReuseHub to coexist on the same droplet. Requests for the ReuseHub hostname
+on port 80 redirect to HTTPS on port 443, while default IP-based port-80 requests continue to reach
+the original LAMP application.
 
-Create DNS records:
+The validated DNS configuration is:
 
-- `A` record for the chosen ReuseHub hostname to the droplet IPv4 address
-- Optional `AAAA` record only if IPv6 is correctly configured
+- DuckDNS hostname: `reusehub.duckdns.org`
+- IPv4 address: `159.203.109.3`
+- IPv6/AAAA record: intentionally omitted because no public IPv6 deployment was configured
 
-Install Certbot for Apache:
+Certbot was installed through Snap and used with Apache:
 
 ```bash
-sudo apt install -y certbot python3-certbot-apache
-sudo certbot --apache -d reusehub.YOUR_DOMAIN
+sudo snap install --classic certbot
+sudo ln -sfn /snap/bin/certbot /usr/local/bin/certbot
+sudo certbot --apache --domain reusehub.duckdns.org --redirect
 sudo certbot renew --dry-run
 ```
 
-Move ReuseHub from the temporary IP-and-port URL to the HTTPS hostname, and restrict the virtual host
-to that hostname.
+The certificate-renewal dry run succeeded, and the Snap Certbot renewal timer is enabled and active.
+
+The canonical public URL is now `https://reusehub.duckdns.org`. Port `8080` remains available only
+as a temporary fallback and internal deployment-health target.
 
 ## 20. Change to production environment values
 
 ```dotenv
 NODE_ENV=production
 PORT=5000
-APP_URL=https://reusehub.YOUR_DOMAIN
-ALLOWED_ORIGINS=https://reusehub.YOUR_DOMAIN
+APP_URL=https://reusehub.duckdns.org
+ALLOWED_ORIGINS=https://reusehub.duckdns.org
 MONGODB_URI=<paste-your-MongoDB-Atlas-connection-string-here>
 JWT_SECRET=<paste-a-new-production-only-secret-here>
 COOKIE_SECURE=true
@@ -551,7 +558,8 @@ pm2 restart reusehub-api --update-env
 pm2 save
 ```
 
-Confirm the cookie is secure and authentication works only through HTTPS.
+The production deployment was browser-tested with a secure HTTP-only authentication cookie,
+`SameSite=Lax`, login persistence after refresh, and successful cookie removal on logout.
 
 ## 21. Configure production services
 
@@ -585,26 +593,30 @@ Before treating the deployment as production-ready:
 
 ## 23. Manual Apache update procedure
 
-Because the included `deploy/deploy-update.sh` currently validates and reloads Nginx, do not use it
-unchanged on the Apache droplet.
+The staged `deploy/deploy-update.sh` is Apache-compatible. It preserves the protected production
+environment, builds the client, validates Apache, promotes the staged release, reloads PM2 with the
+production environment, verifies direct and proxied health, and rolls back automatically if
+promotion fails.
 
-For a reviewed manual update:
+For a reviewed manual update, prepare `/var/www/reusehub-next` from a validated repository
+checkout. Synchronize the source into that staging directory without `.git`, `.github`,
+dependencies, build output, logs, or `server/.env`.
+
+Then invoke the staged deployment script:
 
 ```bash
-cd /var/www/reusehub
-git fetch origin
-git pull --ff-only
-npm ci --ignore-scripts --no-audit --no-fund
-npm --prefix server ci --ignore-scripts --no-audit --no-fund
-npm --prefix client ci --ignore-scripts --no-audit --no-fund
-MONGOMS_DOWNLOAD_DIR=/var/cache/reusehub-mongodb-binaries npm run check
-pm2 restart reusehub-api --update-env
-pm2 save
-sudo apache2ctl configtest
-sudo systemctl reload apache2
+chmod 755 /var/www/reusehub-next/deploy/deploy-update.sh
+LIVE_DIR=/var/www/reusehub \
+STAGING_DIR=/var/www/reusehub-next \
+bash /var/www/reusehub-next/deploy/deploy-update.sh
 ```
 
-Use a release directory or backup before major updates so the previous build can be restored.
+The script copies the protected production environment into staging, installs dependencies, builds
+the client, validates Apache, promotes the staged release, reloads PM2, verifies direct and proxied
+production health, and automatically rolls back after a failed promotion.
+
+Do not run `git pull` inside `/var/www/reusehub`; the live directory is a promoted release rather
+than a Git working tree.
 
 ## 24. GitHub Actions CI
 
@@ -621,11 +633,13 @@ Do not merge a failing workflow.
 
 ## 25. GitHub Actions deployment
 
-The current deployment workflow calls `deploy/deploy-update.sh`, which is Nginx-oriented. Keep the
-workflow disabled or manual until one of these actions is taken:
+The deployment workflow first runs the complete lint, test, and production-build validation. The
+production-promotion job is gated behind a manual workflow dispatch or `DEPLOY_ENABLED=true` and
+requires the deployment host, user, and SSH-key secrets. When enabled, it uploads a staged release
+and invokes the Apache-compatible `deploy/deploy-update.sh` script.
 
-- Update the script to validate and reload Apache, or
-- Move ReuseHub to a fresh Nginx-based server
+Keep production promotion gated until a least-privilege deployment account and reviewed repository
+secrets are configured.
 
 Required SSH secrets must be stored in GitHub repository secrets, never committed.
 
@@ -689,7 +703,8 @@ Run the exact startup command generated by PM2 for the account that owns the pro
 ## Prototype deployment
 
 - [x] Existing Apache/LAMP site preserved
-- [x] ReuseHub available through Apache on port 8080
+- [x] ReuseHub publicly available at `https://reusehub.duckdns.org`
+- [x] Port-8080 fallback remains available
 - [x] Express restricted to loopback
 - [x] PM2 process online
 - [x] PM2 reboot restoration verified
@@ -697,15 +712,15 @@ Run the exact startup command generated by PM2 for the account that owns the pro
 - [x] Automated tests and production build pass
 - [x] Core workflows and mobile widths manually tested
 
-## Remaining production work
+## Production completion checklist
 
-- [ ] Push and merge the tested Git branch
-- [ ] Confirm remote GitHub Actions CI
-- [ ] Add a domain and HTTPS
-- [ ] Enable secure cookies and production mode
+- [x] Push and merge the tested Git branch
+- [x] Confirm remote GitHub Actions CI
+- [x] Add a domain and HTTPS
+- [x] Enable secure cookies and production mode
 - [ ] Configure SMTP
 - [ ] Configure Google Sign-In
 - [ ] Configure live eBay and YouTube credentials
 - [ ] Convert routine deployment to a non-root account
-- [ ] Adapt deployment scripts and workflow for Apache
+- [x] Adapt deployment scripts and workflow for Apache
 - [ ] Add monitoring, backups, and rollback procedures

@@ -68,6 +68,13 @@ remaining deliverable work, and longer-term production work.
 - Apache-compatible deployed architecture; Nginx configuration is also included as an alternative
 - OpenAPI and Postman starter artifacts
 
+## Live production deployment
+
+ReuseHub is publicly deployed at `https://reusehub.duckdns.org` through Apache,
+PM2, and MongoDB Atlas. HTTP redirects to HTTPS, secure HTTP-only cookies are
+enabled, production CORS is restricted to the HTTPS origin, and Certbot renewal
+has been validated.
+
 ## Services implemented but not configured in the current deployment
 
 The code paths exist, but these production credentials or services are not currently enabled:
@@ -76,11 +83,10 @@ The code paths exist, but these production credentials or services are not curre
 - Google Sign-In client configuration
 - Live eBay API credentials
 - Live YouTube Data API credentials
-- Domain name and HTTPS certificate
 
-In the current development deployment, verification and reset links use the development
-preview behavior, and interest checks continue with internal data when external credentials
-are unavailable.
+Because SMTP and live external-service credentials are not configured, verification and
+reset links still use development preview behavior, and interest checks continue with internal
+data when external credentials are unavailable.
 
 ## Remaining work
 
@@ -93,9 +99,6 @@ are unavailable.
 
 ### Before a production release
 
-- Add a domain and HTTPS
-- Run with `NODE_ENV=production`
-- Enable secure cookies and production CORS origins
 - Configure SMTP, Google Sign-In, eBay, and YouTube credentials
 - Add production monitoring, backups, log rotation, and deployment-user hardening
 - Add managed image upload/storage instead of image URLs

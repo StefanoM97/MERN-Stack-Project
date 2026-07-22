@@ -10,8 +10,8 @@ info:
     Native/mobile clients and API tools may instead send the same JWT through
     `Authorization: Bearer <token>`. Protected operations accept either method.
 servers:
-  - url: https://YOUR_DOMAIN/api
-    description: Production API; replace YOUR_DOMAIN after DNS and HTTPS are configured
+  - url: https://reusehub.duckdns.org/api
+    description: Live ReuseHub production API
   - url: http://localhost:5000/api
     description: Local development API
 

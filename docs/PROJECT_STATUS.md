@@ -1,7 +1,7 @@
 # ReuseHub Project Status
 
 **Status date:** July 22, 2026
-**Current phase:** Completion work merged into team `main` with post-merge CI verified; live integrations, HTTPS, Flutter, and final submission packaging remain
+**Current phase:** Completion work merged into team `main` with post-merge CI verified; live integrations, Flutter, and final submission packaging remain
 
 ## Status summary
 
@@ -9,9 +9,9 @@ The core ReuseHub web prototype is functionally complete for its defined invento
 community-discovery, privacy, and interest-signal scope. It has been deployed and tested
 against MongoDB Atlas on a DigitalOcean Ubuntu server.
 
-The project is not yet a hardened production release. The current public deployment uses
-HTTP and development-mode email behavior, and third-party production credentials have not
-been configured.
+The project is not yet a fully hardened production release. The public deployment now uses
+HTTPS, production-mode secure cookies, and a production-only CORS origin. SMTP, Google, eBay,
+and YouTube production credentials have not yet been configured.
 
 | Scope | Current status |
 |---|---|
@@ -22,7 +22,8 @@ been configured.
 | Persistent cloud deployment | Working |
 | GitHub repository submission | Pull request #1 merged into team `main` at `4015240` |
 | GitHub Actions CI execution | Team and fork post-merge CI passed |
-| Production integrations and HTTPS | Not yet configured |
+| Production HTTPS | Configured and validated at `https://reusehub.duckdns.org` |
+| Live external integrations | Not yet configured |
 | Final course evidence/presentation | Pending rubric confirmation and packaging |
 
 ## Implemented and verified
@@ -139,7 +140,10 @@ The exact sanitized Git working tree has passed:
 
 - DigitalOcean Ubuntu 24.04 server
 - Existing Apache service retained for the original LAMP application on port 80
-- ReuseHub served through a separate Apache virtual host on port 8080
+- ReuseHub publicly served at `https://reusehub.duckdns.org`
+- Apache name-based virtual hosting serves ReuseHub on ports 80 and 443
+- HTTP application and API requests redirect to HTTPS
+- Port-8080 ReuseHub access retained as a temporary fallback
 - Apache proxies `/api` to the Express service on `127.0.0.1:5000`
 - PM2 process `reusehub-api` online
 - PM2 startup restoration enabled
@@ -147,6 +151,11 @@ The exact sanitized Git working tree has passed:
 - MongoDB Atlas persistence verified after reboot
 - Existing LAMP site remained available
 - API health endpoint remained healthy during and after validation
+- Let's Encrypt certificate installed through Certbot
+- Certificate renewal dry run succeeded and renewal timer is enabled
+- Express runs with `NODE_ENV=production`
+- Secure HTTP-only cookies validated in Chrome with `SameSite=Lax`
+- Production CORS restricted to `https://reusehub.duckdns.org`
 
 ## Implemented in code but not configured or fully validated live
 
@@ -159,8 +168,8 @@ The exact sanitized Git working tree has passed:
 | GitHub Actions CI | Workflow included | Team and fork post-merge CI passed |
 | GitHub Actions deployment | Staged Apache/PM2 workflow included | Validation passed; production promotion skipped because deployment remains gated |
 | Nginx deployment | Configuration included | Current server uses Apache instead |
-| Production secure cookie | Supported | Disabled because deployment is currently HTTP |
-| HTTPS | Supported by target architecture | Domain and certificate not configured |
+| Production secure cookie | Supported | Enabled and browser-validated over HTTPS |
+| HTTPS | Configured | DuckDNS hostname, trusted certificate, redirects, and renewal validated |
 
 ## Remaining work for the current deliverable
 
@@ -176,11 +185,6 @@ These items are repository/submission tasks rather than missing core application
 
 ### Deployment and operations
 
-- Obtain a domain name.
-- Configure HTTPS/TLS.
-- Change the server to `NODE_ENV=production`.
-- Set `COOKIE_SECURE=true`.
-- Restrict `APP_URL` and `ALLOWED_ORIGINS` to production HTTPS origins.
 - Use a least-privilege deployment account rather than routine root operation.
 - Configure log rotation, uptime monitoring, alerting, and backups.
 - Document restore and rollback procedures.
@@ -209,7 +213,6 @@ These items are repository/submission tasks rather than missing core application
 - Add frontend component or end-to-end browser tests.
 - Add tests for live-service adapters with mocked provider responses.
 - Add coverage thresholds if required.
-- Perform a production HTTPS smoke test.
 - Perform load and abuse testing for public endpoints.
 - Complete user-acceptance testing with non-developer users.
 
@@ -242,6 +245,6 @@ The following are not considered incomplete defects unless the approved scope ch
 ## Completion interpretation
 
 - **Core prototype workflow:** complete and validated
-- **Current deliverable packaging:** nearly complete; GitHub and submission steps remain
-- **Production readiness:** incomplete until HTTPS, production services, and operations work are finished
+- **Current deliverable packaging:** GitHub work complete; live integrations, Flutter, and submission evidence remain
+- **Production readiness:** HTTPS foundation complete; live services and operations hardening remain
 - **Expanded product vision:** optional features remain based on course or stakeholder requirements
