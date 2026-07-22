@@ -46,7 +46,7 @@ Verified state:
 - MongoDB Atlas persistence
 - PM2 startup restoration after reboot
 - Core desktop and mobile workflows tested
-- 6 automated suites and 9 tests passing
+- 7 automated suites and 18 tests passing
 - TypeScript/Vite production build passing
 
 The current deployment is suitable for prototype demonstration, but it is still using HTTP and

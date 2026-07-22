@@ -1,24 +1,100 @@
 name: Deploy to DigitalOcean
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: reusehub-production
+  cancel-in-progress: false
+
 jobs:
-  deploy:
+  validate:
+    name: Validate release
     runs-on: ubuntu-latest
     steps:
-      - name: Configure SSH
-        env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      - name: Check out release
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            client/package-lock.json
+            server/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install server dependencies
+        run: npm --prefix server ci
+
+      - name: Install client dependencies
+        run: npm --prefix client ci
+
+      - name: Run lint, tests, and production build
+        run: npm run check
+
+  deploy:
+    name: Promote production release
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.event_name == 'workflow_dispatch' || vars.DEPLOY_ENABLED == 'true'
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      STAGING_DIR: /var/www/reusehub-next
+
+    steps:
+      - name: Check out validated release
+        uses: actions/checkout@v4
+
+      - name: Validate deployment configuration
         run: |
-          mkdir -p ~/.ssh
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          test -n "$DEPLOY_SSH_KEY"
+
+      - name: Configure SSH
+        run: |
+          install -d -m 700 ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
-      - name: Pull, test, build, and restart
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Prepare remote staging directory
         run: |
-          ssh "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/reusehub && bash deploy/deploy-update.sh'
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" \
+            "rm -rf '$STAGING_DIR' && install -d -m 755 '$STAGING_DIR'"
+
+      - name: Synchronize validated source
+        run: |
+          rsync -az --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='node_modules/' \
+            --exclude='coverage/' \
+            --exclude='client/dist/' \
+            --exclude='server/.env' \
+            --exclude='*.log' \
+            -e ssh \
+            ./ "$DEPLOY_USER@$DEPLOY_HOST:$STAGING_DIR/"
+
+      - name: Build and promote release
+        run: |
+          ssh "$DEPLOY_USER@$DEPLOY_HOST" \
+            "chmod 755 '$STAGING_DIR/deploy/deploy-update.sh' && \
+             LIVE_DIR=/var/www/reusehub \
+             STAGING_DIR='$STAGING_DIR' \
+             bash '$STAGING_DIR/deploy/deploy-update.sh'"

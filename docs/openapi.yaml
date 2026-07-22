@@ -1,172 +1,1092 @@
 openapi: 3.0.3
 info:
   title: ReuseHub API
-  version: 0.2.0
-  description: Inventory, community search, authentication, and reuse-interest API.
+  version: 0.3.0
+  description: |
+    REST API for ReuseHub inventory management, community discovery,
+    authentication, profile privacy, and reuse-interest analysis.
+
+    Browser clients authenticate with the HTTP-only `reusehub_token` cookie.
+    Native/mobile clients and API tools may instead send the same JWT through
+    `Authorization: Bearer <token>`. Protected operations accept either method.
 servers:
   - url: https://YOUR_DOMAIN/api
+    description: Production API; replace YOUR_DOMAIN after DNS and HTTPS are configured
   - url: http://localhost:5000/api
+    description: Local development API
+
+tags:
+  - name: Health
+  - name: Authentication
+  - name: Profile
+  - name: Inventory
+  - name: Community
+  - name: Interest
+
 paths:
   /health:
     get:
-      summary: API health check
+      tags: [Health]
+      operationId: getHealth
+      summary: Check API health
       responses:
-        "200": { description: API is available }
+        "200":
+          description: API is available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
   /auth/register:
     post:
+      tags: [Authentication]
+      operationId: register
       summary: Register a local account
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/RegisterRequest" }
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
       responses:
-        "201": { description: Account created }
-        "409": { description: Email already exists }
+        "201":
+          description: Account created; email verification is required before local login
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          description: An account already exists for the email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
   /auth/verify-email:
     post:
+      tags: [Authentication]
+      operationId: verifyEmail
       summary: Verify a local account
+      description: |
+        Verifies the one-time email token, creates the browser session cookie,
+        and returns an access token for native/mobile clients.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [token]
-              properties: { token: { type: string } }
+              $ref: "#/components/schemas/TokenRequest"
       responses:
-        "200": { description: Email verified; session cookie created }
+        "200":
+          description: Email verified and authenticated session created
+          headers:
+            Set-Cookie:
+              description: HTTP-only browser session cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSessionResponse"
+        "400":
+          description: Invalid, expired, or malformed verification token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
   /auth/login:
     post:
+      tags: [Authentication]
+      operationId: login
       summary: Log in with email and password
+      description: |
+        Creates an HTTP-only cookie for browsers and returns the same JWT as
+        `accessToken` for Flutter, mobile, and API clients.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [email, password]
-              properties:
-                email: { type: string, format: email }
-                password: { type: string }
+              $ref: "#/components/schemas/LoginRequest"
       responses:
-        "200": { description: Logged in }
-        "401": { description: Invalid credentials }
+        "200":
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: HTTP-only browser session cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSessionResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          description: Invalid email or password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Email must be verified before local login
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
   /auth/google:
     post:
+      tags: [Authentication]
+      operationId: googleLogin
       summary: Log in with a Google ID token
+      description: |
+        Verifies a Google Identity Services credential server-side, creates or
+        updates the local ReuseHub account, sets the browser cookie, and returns
+        an access token for native/mobile clients.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [credential]
-              properties: { credential: { type: string } }
+              $ref: "#/components/schemas/GoogleLoginRequest"
       responses:
-        "200": { description: Logged in }
+        "200":
+          description: Google login successful
+          headers:
+            Set-Cookie:
+              description: HTTP-only browser session cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSessionResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          description: Google credential could not be verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Google authentication is not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /auth/forgot-password:
+    post:
+      tags: [Authentication]
+      operationId: forgotPassword
+      summary: Request a password-reset email
+      description: Returns the same generic response whether or not the account exists.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailRequest"
+      responses:
+        "200":
+          description: Generic password-reset response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForgotPasswordResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /auth/reset-password:
+    post:
+      tags: [Authentication]
+      operationId: resetPassword
+      summary: Reset a password with a one-time token
+      description: |
+        Changes the password, marks the email verified, sets the browser session
+        cookie, and returns an access token for native/mobile clients.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      responses:
+        "200":
+          description: Password reset and authenticated session created
+          headers:
+            Set-Cookie:
+              description: HTTP-only browser session cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSessionResponse"
+        "400":
+          description: Invalid, expired, or malformed reset token/password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      operationId: logout
+      summary: Clear the browser authentication cookie
+      description: Native/mobile clients log out by deleting their stored Bearer token locally.
+      responses:
+        "204":
+          description: Browser cookie cleared
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
   /auth/me:
     get:
-      summary: Get current authenticated user
-      security: [{ cookieAuth: [] }]
+      tags: [Authentication]
+      operationId: getCurrentUser
+      summary: Get the current authenticated user
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
       responses:
-        "200": { description: Current user }
-        "401": { description: Not authenticated }
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /profile:
     get:
-      summary: Get profile and contact settings
-      security: [{ cookieAuth: [] }]
-      responses: { "200": { description: Profile } }
+      tags: [Profile]
+      operationId: getProfile
+      summary: Get profile and contact-visibility settings
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     put:
-      summary: Update profile and contact visibility
-      security: [{ cookieAuth: [] }]
-      responses: { "200": { description: Updated profile } }
+      tags: [Profile]
+      operationId: updateProfile
+      summary: Update profile and contact-visibility settings
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdateRequest"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /items:
     get:
-      summary: List authenticated user's items
-      security: [{ cookieAuth: [] }]
-      responses: { "200": { description: Item list } }
+      tags: [Inventory]
+      operationId: listOwnItems
+      summary: List the authenticated user's inventory
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Item list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     post:
-      summary: Create an item
-      security: [{ cookieAuth: [] }]
+      tags: [Inventory]
+      operationId: createItem
+      summary: Create an inventory item
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/ItemInput" }
-      responses: { "201": { description: Item created } }
+            schema:
+              $ref: "#/components/schemas/ItemInput"
+      responses:
+        "201":
+          description: Item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /items/{id}:
     parameters:
-      - in: path
-        name: id
-        required: true
-        schema: { type: string }
+      - $ref: "#/components/parameters/ItemId"
     get:
-      summary: Get a visible item
-      security: [{ cookieAuth: [] }]
-      responses: { "200": { description: Item }, "403": { description: Not visible } }
+      tags: [Inventory]
+      operationId: getItem
+      summary: Get an owned or visible inventory item
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Item and ownership status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemDetailResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
     put:
-      summary: Update an owned item
-      security: [{ cookieAuth: [] }]
+      tags: [Inventory]
+      operationId: updateItem
+      summary: Update an owned inventory item
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/ItemInput" }
-      responses: { "200": { description: Item updated } }
+            schema:
+              $ref: "#/components/schemas/ItemInput"
+      responses:
+        "200":
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
     delete:
-      summary: Delete an owned item
-      security: [{ cookieAuth: [] }]
-      responses: { "204": { description: Item deleted } }
+      tags: [Inventory]
+      operationId: deleteItem
+      summary: Delete an owned inventory item
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Item deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /community/items:
     get:
+      tags: [Community]
+      operationId: searchCommunity
       summary: Search public and same-school inventory
-      security: [{ cookieAuth: [] }]
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
       parameters:
         - in: query
           name: search
-          schema: { type: string }
+          schema:
+            type: string
+          description: Terms matched against item title, description, and keywords
+        - in: query
+          name: category
+          schema:
+            $ref: "#/components/schemas/ItemCategory"
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/ItemStatus"
         - in: query
           name: scope
-          schema: { type: string, enum: [community, public] }
-      responses: { "200": { description: Search results } }
+          schema:
+            type: string
+            enum: [community, public]
+            default: community
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        "200":
+          description: Paginated visible-item search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunitySearchResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /interest/items/{id}/check:
     post:
-      summary: Create an interest snapshot for an owned item
-      security: [{ cookieAuth: [] }]
+      tags: [Interest]
+      operationId: checkInterest
+      summary: Create a reuse-interest snapshot for an owned item
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: string }
-      responses: { "200": { description: Snapshot created } }
+        - $ref: "#/components/parameters/ItemId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InterestCheckRequest"
+      responses:
+        "200":
+          description: Snapshot created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterestCheckResponse"
+        "400":
+          description: Keyword is too short
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /interest/items/{id}/history:
+    get:
+      tags: [Interest]
+      operationId: getInterestHistory
+      summary: Get up to ten recent interest snapshots for an owned item
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ItemId"
+      responses:
+        "200":
+          description: Interest history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterestHistoryResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
   securitySchemes:
     cookieAuth:
       type: apiKey
       in: cookie
       name: reusehub_token
+      description: HTTP-only JWT cookie used by the React web client
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT returned as accessToken for Flutter, native, Postman, and Swagger clients
+
+  parameters:
+    ItemId:
+      in: path
+      name: id
+      required: true
+      description: MongoDB item identifier
+      schema:
+        type: string
+        example: 507f1f77bcf86cd799439011
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Authentication is missing, malformed, invalid, or expired
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: The authenticated user is not permitted to access the resource
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    RateLimited:
+      description: Too many authentication requests
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
   schemas:
+    HealthResponse:
+      type: object
+      required: [status, environment, time]
+      properties:
+        status:
+          type: string
+          example: ok
+        environment:
+          type: string
+          example: production
+        time:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        details:
+          nullable: true
+          description: Validation details may be included outside production
+
     RegisterRequest:
       type: object
       required: [firstName, lastName, email, password]
       properties:
-        firstName: { type: string }
-        lastName: { type: string }
-        email: { type: string, format: email }
-        password: { type: string, minLength: 10 }
-        communityName: { type: string }
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          $ref: "#/components/schemas/StrongPassword"
+        communityName:
+          type: string
+          maxLength: 100
+          default: ""
+
+    RegisterResponse:
+      type: object
+      required: [message, user]
+      properties:
+        message:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+        developmentVerificationUrl:
+          type: string
+          format: uri
+          description: Present only when a development email preview is available
+        verificationToken:
+          type: string
+          description: Present only in the automated test environment
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+
+    GoogleLoginRequest:
+      type: object
+      required: [credential]
+      properties:
+        credential:
+          type: string
+          minLength: 20
+          description: Google Identity Services ID-token credential
+
+    EmailRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    TokenRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+          minLength: 20
+
+    ResetPasswordRequest:
+      type: object
+      required: [token, password]
+      properties:
+        token:
+          type: string
+          minLength: 20
+        password:
+          $ref: "#/components/schemas/StrongPassword"
+
+    StrongPassword:
+      type: string
+      minLength: 10
+      maxLength: 128
+      pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).+$'
+      description: Must contain lowercase, uppercase, and numeric characters
+
+    AuthSessionResponse:
+      type: object
+      required: [accessToken, user]
+      properties:
+        message:
+          type: string
+        accessToken:
+          type: string
+          description: JWT for Bearer authentication by native/mobile and API clients
+        user:
+          $ref: "#/components/schemas/User"
+
+    ForgotPasswordResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: If the account exists, a reset link has been sent.
+        developmentResetUrl:
+          type: string
+          format: uri
+          description: Present only when a development email preview is available
+        resetToken:
+          type: string
+          description: Present only in the automated test environment
+
+    UserResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+
+    User:
+      type: object
+      required:
+        [id, firstName, lastName, email, schoolDomain, communityName, contact, emailVerified]
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        schoolDomain:
+          type: string
+        communityName:
+          type: string
+        contact:
+          $ref: "#/components/schemas/ContactSettings"
+        emailVerified:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    PublicUser:
+      type: object
+      required: [id, firstName, lastName, schoolDomain, communityName, preferredContact]
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        schoolDomain:
+          type: string
+        communityName:
+          type: string
+        preferredContact:
+          type: string
+          enum: [email, phone]
+        email:
+          type: string
+          format: email
+          description: Omitted when the owner has hidden email
+        phone:
+          type: string
+          description: Omitted when the owner has hidden phone
+
+    ContactSettings:
+      type: object
+      required: [emailVisible, phone, phoneVisible, preferredContact]
+      properties:
+        emailVisible:
+          type: boolean
+        phone:
+          type: string
+          maxLength: 30
+        phoneVisible:
+          type: boolean
+        preferredContact:
+          type: string
+          enum: [email, phone]
+
+    ProfileUpdateRequest:
+      type: object
+      required: [firstName, lastName, contact]
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        communityName:
+          type: string
+          maxLength: 100
+          default: ""
+        contact:
+          $ref: "#/components/schemas/ContactSettings"
+
+    ItemCategory:
+      type: string
+      enum:
+        - Books
+        - Apparel
+        - Tools
+        - Electronics
+        - Furniture
+        - School Supplies
+        - Household Items
+        - Sports / Outdoor
+        - Non-perishable Goods
+        - Other
+
+    ItemCondition:
+      type: string
+      enum: [New, Like New, Good, Fair, Needs Repair]
+
+    ItemStatus:
+      type: string
+      enum:
+        - Keeping
+        - Available to lend
+        - Available to give away
+        - Available to sell
+        - Available to donate
+        - Needs repair
+        - Recycled / removed
+
+    ItemVisibility:
+      type: string
+      enum: [Private, School, Public]
+
     ItemInput:
       type: object
       required: [title, category, condition, status]
       properties:
-        title: { type: string }
-        description: { type: string }
-        category: { type: string }
-        condition: { type: string }
-        status: { type: string }
-        quantity: { type: integer, minimum: 1 }
-        locationLabel: { type: string }
-        visibility: { type: string, enum: [Private, School, Public] }
-        keywords: { type: array, items: { type: string } }
-        imageUrl: { type: string, format: uri }
+        title:
+          type: string
+          minLength: 2
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 1200
+          default: ""
+        category:
+          $ref: "#/components/schemas/ItemCategory"
+        condition:
+          $ref: "#/components/schemas/ItemCondition"
+        status:
+          $ref: "#/components/schemas/ItemStatus"
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 999
+          default: 1
+        locationLabel:
+          type: string
+          maxLength: 100
+          default: ""
+        visibility:
+          allOf:
+            - $ref: "#/components/schemas/ItemVisibility"
+          default: Private
+        keywords:
+          type: array
+          maxItems: 12
+          default: []
+          items:
+            type: string
+            minLength: 1
+            maxLength: 40
+        imageUrl:
+          type: string
+          format: uri
+          maxLength: 1000
+          default: ""
+
+    EstimatedValue:
+      type: object
+      properties:
+        low:
+          type: number
+          minimum: 0
+        high:
+          type: number
+          minimum: 0
+        average:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+          example: USD
+        checkedAt:
+          type: string
+          format: date-time
+
+    Item:
+      type: object
+      required:
+        [id, title, description, category, condition, status, quantity, locationLabel,
+         visibility, keywords, imageUrl]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          $ref: "#/components/schemas/ItemCategory"
+        condition:
+          $ref: "#/components/schemas/ItemCondition"
+        status:
+          $ref: "#/components/schemas/ItemStatus"
+        quantity:
+          type: integer
+        locationLabel:
+          type: string
+        visibility:
+          $ref: "#/components/schemas/ItemVisibility"
+        keywords:
+          type: array
+          items:
+            type: string
+        imageUrl:
+          type: string
+        estimatedValue:
+          allOf:
+            - $ref: "#/components/schemas/EstimatedValue"
+          nullable: true
+        owner:
+          $ref: "#/components/schemas/PublicUser"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ItemResponse:
+      type: object
+      required: [item]
+      properties:
+        item:
+          $ref: "#/components/schemas/Item"
+
+    ItemDetailResponse:
+      type: object
+      required: [item, isOwner]
+      properties:
+        item:
+          $ref: "#/components/schemas/Item"
+        isOwner:
+          type: boolean
+
+    ItemListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+
+    CommunitySearchResponse:
+      type: object
+      required: [items, total, page, pages]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+        total:
+          type: integer
+          minimum: 0
+        page:
+          type: integer
+          minimum: 1
+        pages:
+          type: integer
+          minimum: 0
+
+    InterestCheckRequest:
+      type: object
+      properties:
+        keyword:
+          type: string
+          minLength: 2
+          description: Defaults to the item title when omitted
+
+    ServiceAvailability:
+      type: object
+      required: [available]
+      properties:
+        available:
+          type: boolean
+        error:
+          type: string
+
+    InterestServices:
+      type: object
+      required: [ebay, youtube]
+      properties:
+        ebay:
+          $ref: "#/components/schemas/ServiceAvailability"
+        youtube:
+          $ref: "#/components/schemas/ServiceAvailability"
+
+    InterestSnapshot:
+      type: object
+      properties:
+        _id:
+          type: string
+        itemId:
+          type: string
+        ownerId:
+          type: string
+        keyword:
+          type: string
+        ebay:
+          nullable: true
+          type: object
+          additionalProperties: true
+        youtube:
+          nullable: true
+          type: object
+          additionalProperties: true
+        internal:
+          type: object
+          additionalProperties: true
+        reuseScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        recommendation:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    InterestCheckResponse:
+      type: object
+      required: [snapshot, services]
+      properties:
+        snapshot:
+          $ref: "#/components/schemas/InterestSnapshot"
+        services:
+          $ref: "#/components/schemas/InterestServices"
+
+    InterestHistoryResponse:
+      type: object
+      required: [snapshots]
+      properties:
+        snapshots:
+          type: array
+          maxItems: 10
+          items:
+            $ref: "#/components/schemas/InterestSnapshot"

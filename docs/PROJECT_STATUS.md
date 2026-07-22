@@ -1,7 +1,7 @@
 # ReuseHub Project Status
 
 **Status date:** July 15, 2026
-**Current phase:** Tested MERN prototype awaiting GitHub commit, CI verification, and final submission packaging
+**Current phase:** Tested MERN prototype with the completion branch pushed; CI confirmation, live integrations, HTTPS, mobile delivery, and final submission packaging remain
 
 ## Status summary
 
@@ -121,8 +121,10 @@ The exact sanitized Git working tree has passed:
 
 - Server ESLint
 - Client ESLint
-- 6 Jest test suites
-- 9 total tests
+- 7 Jest test suites
+- 18 total tests
+- Mocked Express app tests for router mounts, security headers, CORS, malformed JSON, and 404 handling
+- Formal coverage: 75.06% statements, 56.19% branches, 74.28% functions, and 78.32% lines
 - Authentication integration tests
 - Inventory CRUD and ownership integration tests
 - Visibility and privacy integration tests
@@ -154,7 +156,7 @@ The exact sanitized Git working tree has passed:
 | Google Sign-In | Integration points implemented | No Google client ID; live sign-in not tested |
 | eBay Browse API | Implemented | No credentials; fallback tested |
 | YouTube Data API | Implemented | No API key; fallback tested |
-| GitHub Actions CI | Workflow included | First remote run pending push |
+| GitHub Actions CI | Workflow included | Completion branch pushed; latest workflow result still to confirm |
 | GitHub Actions deployment | Manual workflow included | Deployment secrets not configured |
 | Nginx deployment | Configuration included | Current server uses Apache instead |
 | Production secure cookie | Supported | Disabled because deployment is currently HTTP |
@@ -164,14 +166,12 @@ The exact sanitized Git working tree has passed:
 
 These items are repository/submission tasks rather than missing core application workflows:
 
-1. Commit the sanitized and tested project.
-2. Push the feature branch to GitHub.
-3. Open or merge a pull request according to the team workflow.
-4. Confirm GitHub Actions completes successfully.
-5. Capture final screenshots or a demo recording required by the course rubric.
-6. Update team attribution and task ownership.
-7. Confirm whether live Google, SMTP, eBay, or YouTube integrations are mandatory for grading.
-8. Submit the repository URL, deployment URL, and required supporting documents.
+1. Open or merge a pull request according to the team workflow.
+2. Confirm GitHub Actions completes successfully for the current completion branch.
+3. Capture final screenshots or a demo recording required by the course rubric.
+4. Update team attribution and task ownership.
+5. Configure and validate the Google, SMTP, eBay, and YouTube integrations required by the rubric.
+6. Submit the repository URL, deployment URL, and required supporting documents.
 
 ## Remaining work for the total project or a production release
 

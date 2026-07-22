@@ -1,6 +1,6 @@
 # Validation Report
 
-**Validation date:** July 15, 2026
+**Validation date:** July 22, 2026
 **Validated environment:** Node.js 22.23.1, npm 10.9.8, Ubuntu 24.04
 **Application mode during deployment validation:** development
 
@@ -16,18 +16,27 @@ Result:
 
 - Server ESLint: passed
 - Client ESLint: passed
-- Jest test suites: 6 passed, 6 total
-- Jest tests: 9 passed, 9 total
+- Jest test suites: 7 passed, 7 total
+- Jest tests: 18 passed, 18 total
 - TypeScript compilation: passed
 - Vite production build: passed
 - Command exit code: 0
+- Jest statements coverage: 75.06% (277/369)
+- Jest branches coverage: 56.19% (177/315)
+- Jest functions coverage: 74.28% (52/70)
+- Jest lines coverage: 78.32% (271/346)
 
 The test suite used MongoDB Memory Server with a cached MongoDB 7.0.24 test binary. It did
 not connect to or clear the production Atlas database.
 
 ## Automated coverage exercised
 
-- API health response
+- API health response and metadata
+- Express router mounts with mocked route modules
+- Helmet security headers
+- Allowed and rejected CORS origins plus preflight behavior
+- Malformed JSON and standardized unknown-route responses
+- Cookie and Bearer authentication transport behavior
 - Reuse-interest score behavior
 - Authentication registration and verification
 - Login, current-session lookup, and logout
@@ -102,7 +111,7 @@ Installation and all validation still completed successfully.
 - Live eBay Browse API responses
 - Live YouTube Data API responses
 - HTTPS and secure production cookies
-- GitHub Actions CI on the remote repository
+- Latest GitHub Actions CI result for the current completion-branch commits
 - GitHub Actions deployment workflow
 
 The service modules or workflows are present, but credentials, remote execution, or HTTPS

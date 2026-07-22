@@ -1,6 +1,6 @@
 # Testing Checklist
 
-**Last updated:** July 15, 2026
+**Last updated:** July 22, 2026
 
 ## Automated validation
 
@@ -24,8 +24,8 @@ npm run check
 
 Latest verified result:
 
-- [x] 6 of 6 test suites passed
-- [x] 9 of 9 tests passed
+- [x] 7 of 7 test suites passed
+- [x] 18 of 18 tests passed
 - [x] Exit code 0
 - [x] No sensitive values in consolidated test output
 
@@ -34,6 +34,14 @@ For coverage:
 ```bash
 npm --prefix server run test:coverage
 ```
+
+Latest verified server coverage:
+
+- [x] Statements: 75.06% (277/369)
+- [x] Branches: 56.19% (177/315)
+- [x] Functions: 74.28% (52/70)
+- [x] Lines: 78.32% (271/346)
+- [x] Mocked Express app tests cover router mounts, Helmet headers, CORS, malformed JSON, and unknown routes
 
 ## Manual core workflow
 
@@ -142,8 +150,8 @@ sudo systemctl status apache2
 - [x] Staged file-size check passed
 - [x] Git diff/whitespace check passed
 - [x] Exact sanitized clone passed `npm run check`
-- [ ] Commit the tested source
-- [ ] Push the feature branch
+- [x] Commit the tested source
+- [x] Push the feature branch
 - [ ] Confirm GitHub Actions CI passes
 - [ ] Open or merge the pull request
 - [ ] Capture final screenshots or demo recording

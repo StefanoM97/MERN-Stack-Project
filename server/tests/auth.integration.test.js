@@ -28,14 +28,38 @@ describe("authentication", () => {
       token: registration.body.verificationToken
     });
     expect(verification.status).toBe(200);
+    expect(verification.body.accessToken).toBeTruthy();
 
     const me = await agent.get("/api/auth/me");
     expect(me.status).toBe(200);
     expect(me.body.user.schoolDomain).toBe("ucf.edu");
 
+    const bearerMe = await request(app)
+      .get("/api/auth/me")
+      .set("Authorization", `Bearer ${verification.body.accessToken}`);
+
+    expect(bearerMe.status).toBe(200);
+    expect(bearerMe.body.user.email).toBe("stefano@ucf.edu");
+
     const logout = await agent.post("/api/auth/logout");
     expect(logout.status).toBe(204);
     expect((await agent.get("/api/auth/me")).status).toBe(401);
+  });
+
+  it("rejects malformed and invalid Bearer credentials", async () => {
+    const malformed = await request(app)
+      .get("/api/auth/me")
+      .set("Authorization", "Basic not-a-bearer-token");
+
+    expect(malformed.status).toBe(401);
+    expect(malformed.body.error).toBe("Invalid authorization header");
+
+    const invalid = await request(app)
+      .get("/api/auth/me")
+      .set("Authorization", "Bearer not-a-valid-jwt");
+
+    expect(invalid.status).toBe(401);
+    expect(invalid.body.error).toBe("Invalid or expired session");
   });
 
   it("supports password reset without revealing whether an email exists", async () => {
@@ -58,5 +82,13 @@ describe("authentication", () => {
       password: "NewPrototype123"
     });
     expect(reset.status).toBe(200);
+    expect(reset.body.accessToken).toBeTruthy();
+
+    const bearerMe = await request(app)
+      .get("/api/auth/me")
+      .set("Authorization", `Bearer ${reset.body.accessToken}`);
+
+    expect(bearerMe.status).toBe(200);
+    expect(bearerMe.body.user.email).toBe("reset@example.com");
   });
 });

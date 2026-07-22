@@ -23,7 +23,9 @@ import { serializeOwnUser } from "../serializers/userSerializers.js";
 const googleClient = new OAuth2Client(env.googleClientId);
 
 function setSession(res, user) {
-  res.cookie(env.cookieName, signAuthToken(user._id.toString()), authCookieOptions());
+  const accessToken = signAuthToken(user._id.toString());
+  res.cookie(env.cookieName, accessToken, authCookieOptions());
+  return accessToken;
 }
 
 export async function register(req, res) {
@@ -68,8 +70,12 @@ export async function verifyEmail(req, res) {
   user.verificationTokenHash = "";
   user.verificationTokenExpiresAt = undefined;
   await user.save();
-  setSession(res, user);
-  return res.json({ message: "Email verified", user: serializeOwnUser(user) });
+  const accessToken = setSession(res, user);
+  return res.json({
+    message: "Email verified",
+    accessToken,
+    user: serializeOwnUser(user)
+  });
 }
 
 export async function login(req, res) {
@@ -83,8 +89,8 @@ export async function login(req, res) {
     return res.status(403).json({ error: "Verify your email before logging in" });
   }
 
-  setSession(res, user);
-  return res.json({ user: serializeOwnUser(user) });
+  const accessToken = setSession(res, user);
+  return res.json({ accessToken, user: serializeOwnUser(user) });
 }
 
 export async function googleLogin(req, res) {
@@ -123,8 +129,8 @@ export async function googleLogin(req, res) {
     await user.save();
   }
 
-  setSession(res, user);
-  return res.json({ user: serializeOwnUser(user) });
+  const accessToken = setSession(res, user);
+  return res.json({ accessToken, user: serializeOwnUser(user) });
 }
 
 export async function forgotPassword(req, res) {
@@ -163,8 +169,12 @@ export async function resetPassword(req, res) {
   user.emailVerified = true;
   await user.save();
 
-  setSession(res, user);
-  return res.json({ message: "Password reset", user: serializeOwnUser(user) });
+  const accessToken = setSession(res, user);
+  return res.json({
+    message: "Password reset",
+    accessToken,
+    user: serializeOwnUser(user)
+  });
 }
 
 export function logout(_req, res) {
