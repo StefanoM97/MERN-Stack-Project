@@ -8,7 +8,7 @@ school-community inventory, and view internal or external interest signals.
 
 **Core MERN web prototype: implemented, deployed, and validated.**
 
-As of July 22, 2026:
+As of July 23, 2026:
 
 - The React/TypeScript frontend and Express/MongoDB backend are complete for the prototype scope.
 - The application is deployed on a DigitalOcean Ubuntu server.
@@ -20,7 +20,7 @@ As of July 22, 2026:
 - Formal Jest coverage is 75.06% statements, 56.19% branches, 74.28% functions, and 78.32% lines.
 - The TypeScript/Vite production build passes.
 - Manual desktop and mobile workflow tests pass at widths down to 320 pixels.
-- Pull requests #1 through #4 merged successfully into the team `main` branch; the current production release is `ceeb76f`.
+- Pull requests #1 through #6 merged successfully into the team `main` branch; the current production release is `3b833ed`.
 - Team and fork post-merge CI passed; deployment validation passed and production promotion remained gated.
 
 See [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) for the implemented feature matrix,
@@ -35,7 +35,7 @@ remaining deliverable work, and longer-term production work.
 - Forgot-password and single-use password-reset flow
 - HTTP-only JWT authentication cookie
 - Profile editing and contact-sharing preferences
-- Google identity integration points in the client and API
+- Google Sign-In implemented and validated end to end in production
 - Authentication rate limiting and request validation
 
 ### Inventory and community discovery
@@ -82,9 +82,11 @@ A verified sender successfully delivers account-verification and password-reset 
 Both flows have been browser-tested over HTTPS, and sensitive link tokens use URL fragments
 that are removed from the address bar before API requests are made.
 
+Google Sign-In is configured and validated in production for approved Google Auth Platform test users.
+The Google application currently remains External with Testing publishing status.
+
 The following live integrations remain unconfigured:
 
-- Google Sign-In client configuration
 - Live eBay API credentials
 - Live YouTube Data API credentials
 
@@ -95,13 +97,13 @@ Interest checks continue with internal data when external API credentials are un
 ### Before this deliverable is finalized
 
 - Add final submission screenshots, demo evidence, and team attribution required by the rubric
-- Configure and validate the required live Google, eBay, and YouTube integrations
+- Configure and validate the required live eBay and YouTube integrations
 - Complete the required Flutter client
 - Submit the repository and deployment link in the required course format
 
 ### Before a production release
 
-- Configure Google Sign-In, eBay, and YouTube credentials
+- Configure eBay and YouTube credentials
 - Add production monitoring, backups, log rotation, and deployment-user hardening
 - Add managed image upload/storage instead of image URLs
 - Complete accessibility/Lighthouse review and broader browser testing
