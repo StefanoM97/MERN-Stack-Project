@@ -50,7 +50,9 @@ not connect to or clear the production Atlas database.
 
 ## Manual workflow validation completed
 
-- Registered and verified a prototype account
+- Registered an account and received the production SMTP verification email
+- Completed email verification through the HTTPS link
+- Confirmed the verification token was removed from the browser URL and HTTP referrer
 - Logged out and logged back in
 - Created, viewed, edited, and deleted inventory items
 - Verified public visibility
@@ -60,7 +62,9 @@ not connect to or clear the production Atlas database.
 - Disabled contact sharing and confirmed non-owner privacy behavior
 - Ran an interest check without external credentials
 - Verified saved interest history loads automatically
-- Completed password reset
+- Received the production SMTP password-reset email
+- Completed password reset through the HTTPS link
+- Confirmed the reset token was removed from the browser URL and HTTP referrer
 - Confirmed the old password no longer works
 - Confirmed a reset token cannot be reused
 - Confirmed protected routes redirect after logout
@@ -118,18 +122,23 @@ The live deployment at `https://reusehub.duckdns.org` has been validated with:
 - Successful login persistence, logout, and secure-cookie browser testing
 - Successful Certbot renewal dry run with an enabled renewal timer
 - Continued operation of the existing LAMP site and port-8080 fallback
+- Brevo SMTP authentication and delivery validated through port `2525`
+- Live verification and password-reset email workflows completed successfully
+- One-time token processing confirmed through production request logs
+- Controlled manual promotion of release `ceeb76f` passed direct and proxied health checks
 
 ## Not yet validated as live production integrations
 
-- SMTP email delivery
 - Google Sign-In
 - Live eBay Browse API responses
 - Live YouTube Data API responses
 - Live production promotion through the GitHub Actions deployment workflow
 
-Team and fork post-merge CI passed for canonical team `main` commit `4015240`. The deployment
-workflow's validation job also passed, while production promotion was intentionally skipped
-because deployment remains gated and its secrets are not configured. Live service credentials and production promotion remain pending.
+Team and fork post-merge CI passed for canonical team `main` commit `ceeb76f`. The deployment
+workflow's validation job also passed, while GitHub Actions production promotion remained
+intentionally gated. Release `ceeb76f` was promoted through the validated Apache/PM2 deployment
+script, and both direct and proxied production health checks passed. Google, eBay, and YouTube
+live-service validation remains pending.
 
 ## Reproduction
 

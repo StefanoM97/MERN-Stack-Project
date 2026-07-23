@@ -16,11 +16,11 @@ As of July 22, 2026:
 - PM2 keeps the API online and restores it after a server reboot.
 - MongoDB Atlas stores persistent application data.
 - Server and client lint pass.
-- All 7 automated test suites and all 18 tests pass.
+- All 8 automated test suites and all 21 tests pass.
 - Formal Jest coverage is 75.06% statements, 56.19% branches, 74.28% functions, and 78.32% lines.
 - The TypeScript/Vite production build passes.
 - Manual desktop and mobile workflow tests pass at widths down to 320 pixels.
-- Pull request #1 merged successfully into the team `main` branch at commit `4015240`.
+- Pull requests #1 through #4 merged successfully into the team `main` branch; the current production release is `ceeb76f`.
 - Team and fork post-merge CI passed; deployment validation passed and production promotion remained gated.
 
 See [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) for the implemented feature matrix,
@@ -75,31 +75,33 @@ PM2, and MongoDB Atlas. HTTP redirects to HTTPS, secure HTTP-only cookies are
 enabled, production CORS is restricted to the HTTPS origin, and Certbot renewal
 has been validated.
 
-## Services implemented but not configured in the current deployment
+## Production services and remaining integrations
 
-The code paths exist, but these production credentials or services are not currently enabled:
+Production SMTP delivery is configured through Brevo's SMTP relay on port `2525`.
+A verified sender successfully delivers account-verification and password-reset messages.
+Both flows have been browser-tested over HTTPS, and sensitive link tokens use URL fragments
+that are removed from the address bar before API requests are made.
 
-- SMTP email delivery
+The following live integrations remain unconfigured:
+
 - Google Sign-In client configuration
 - Live eBay API credentials
 - Live YouTube Data API credentials
 
-Because SMTP and live external-service credentials are not configured, verification and
-reset links still use development preview behavior, and interest checks continue with internal
-data when external credentials are unavailable.
+Interest checks continue with internal data when external API credentials are unavailable.
 
 ## Remaining work
 
 ### Before this deliverable is finalized
 
 - Add final submission screenshots, demo evidence, and team attribution required by the rubric
-- Configure and validate the required live SMTP, Google, eBay, and YouTube integrations
+- Configure and validate the required live Google, eBay, and YouTube integrations
 - Complete the required Flutter client
 - Submit the repository and deployment link in the required course format
 
 ### Before a production release
 
-- Configure SMTP, Google Sign-In, eBay, and YouTube credentials
+- Configure Google Sign-In, eBay, and YouTube credentials
 - Add production monitoring, backups, log rotation, and deployment-user hardening
 - Add managed image upload/storage instead of image URLs
 - Complete accessibility/Lighthouse review and broader browser testing

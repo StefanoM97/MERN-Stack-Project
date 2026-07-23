@@ -32,9 +32,9 @@ The goal is architectural alignment rather than a line-for-line copy of the refe
 | User-owned CRUD resources | Inventory items associated with their owner | Implemented and tested |
 | Protected data access | Owner authorization plus private, school, and public visibility rules | Implemented and tested |
 | External API/service layer | eBay, YouTube, SMTP, and Google authentication service integration points | Implemented in code; live credentials partly pending |
-| Automated backend testing | Jest, Supertest, MongoDB Memory Server, and mocked Express routers | Implemented; 7 suites and 18 tests pass |
+| Automated backend testing | Jest, Supertest, MongoDB Memory Server, and mocked Express routers | Implemented; 8 suites and 21 tests pass |
 | Browser production build | TypeScript compilation and Vite production build | Implemented and verified |
-| Continuous integration | GitHub Actions workflow for install, lint, test, and build | Team and fork post-merge CI passed for `main` commit `4015240` |
+| Continuous integration | GitHub Actions workflow for install, lint, test, and build | Team and fork post-merge CI passed for production release `ceeb76f` |
 | Cloud deployment | DigitalOcean, MongoDB Atlas, PM2, and reverse proxy | Implemented with Apache in the current deployment |
 | Configuration templates | Root, client, and server lock files plus `.env.example` templates | Implemented |
 | API documentation | OpenAPI 3.0 contract and Postman v2.1 demonstration collection | Completed for all 19 implemented operations |
@@ -136,7 +136,7 @@ implementation choice differs, but the required responsive behavior has been man
 ### Jest/Supertest instead of Cypress browser automation
 
 ReuseHub currently provides backend unit, integration, and mocked Express application tests with
-Jest, Supertest, and MongoDB Memory Server. All 7 suites and 18 tests pass. Formal server coverage
+Jest, Supertest, and MongoDB Memory Server. All 8 suites and 21 tests pass. Formal server coverage
 is 75.06% statements, 56.19% branches, 74.28% functions, and 78.32% lines. Core browser workflows
 were tested manually on desktop and mobile widths.
 
@@ -175,8 +175,8 @@ The exact sanitized Git working tree has completed the following successfully:
 
 - Server ESLint
 - Client ESLint
-- 7 of 7 Jest suites
-- 18 of 18 tests
+- 8 of 8 Jest suites
+- 21 of 21 tests
 - 75.06% statement coverage and 78.32% line coverage
 - TypeScript compilation
 - Vite production build
@@ -201,6 +201,9 @@ Manual validation has covered:
 - Secure HTTP-only production cookies and login persistence
 - Production-only CORS allowlisting
 - Successful Certbot renewal dry run
+- Live SMTP verification and password-reset delivery through Brevo
+- One-time verification and reset token processing
+- Sensitive verification and reset tokens removed from browser URLs and HTTP referrers
 
 ## Alignment gaps and remaining work
 
@@ -208,7 +211,6 @@ The core architectural goals are met. The following work remains before a harden
 release or a broader course submission:
 
 - Add automated browser end-to-end tests if required
-- Configure and validate SMTP email delivery
 - Configure and validate Google Sign-In
 - Configure and validate live eBay and YouTube responses
 - Add managed image upload/storage rather than relying only on image URLs

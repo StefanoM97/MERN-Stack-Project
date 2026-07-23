@@ -24,8 +24,8 @@ npm run check
 
 Latest verified result:
 
-- [x] 7 of 7 test suites passed
-- [x] 18 of 18 tests passed
+- [x] 8 of 8 test suites passed
+- [x] 21 of 21 tests passed
 - [x] Exit code 0
 - [x] No sensitive values in consolidated test output
 
@@ -48,7 +48,7 @@ Latest verified server coverage:
 ### Authentication
 
 - [x] Register an account
-- [x] Use the development verification link
+- [x] Use the delivered SMTP verification link
 - [x] Log in
 - [x] Restore the authenticated session
 - [x] Log out
@@ -134,8 +134,9 @@ sudo systemctl status apache2
 - [x] HTTP redirects to HTTPS
 - [x] Secure cookie works over HTTPS
 - [x] Production CORS accepts only approved origins
-- [ ] SMTP verification email is delivered
-- [ ] SMTP password-reset email is delivered
+- [x] SMTP verification email is delivered
+- [x] SMTP password-reset email is delivered
+- [x] Verification and reset tokens are removed from the browser URL and HTTP referrer
 - [ ] Google Sign-In succeeds
 - [ ] eBay integration succeeds
 - [ ] YouTube integration succeeds
