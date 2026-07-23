@@ -1,8 +1,12 @@
 # Validation Report
 
-**Validation date:** July 22, 2026
-**Validated environment:** Node.js 22.23.1, npm 10.9.8, Ubuntu 24.04
-**Application mode during deployment validation:** development
+**Historical baseline validation date:** July 22, 2026
+**Baseline validated environment:** Node.js 22.23.1, npm 10.9.8, Ubuntu 24.04
+**Application mode during the initial staged deployment validation:** development
+
+This report preserves the exact results of the July 22 baseline. Later production and
+repository changes are recorded in the current-status addendum below rather than rewriting
+the historical test totals.
 
 ## Final automated result
 
@@ -127,18 +131,29 @@ The live deployment at `https://reusehub.duckdns.org` has been validated with:
 - One-time token processing confirmed through production request logs
 - Controlled manual promotion of release `ceeb76f` passed direct and proxied health checks
 
-## Not yet validated as live production integrations
+## Current-status addendum — July 23, 2026
 
-- Google Sign-In
-- Live eBay Browse API responses
-- Live YouTube Data API responses
-- Live production promotion through the GitHub Actions deployment workflow
+Completed after the historical baseline:
 
-Team and fork post-merge CI passed for canonical team `main` commit `ceeb76f`. The deployment
-workflow's validation job also passed, while GitHub Actions production promotion remained
-intentionally gated. Release `ceeb76f` was promoted through the validated Apache/PM2 deployment
-script, and both direct and proxied production health checks passed. Google, eBay, and YouTube
-live-service validation remains pending.
+- Production application mode enabled
+- Google Sign-In configured and validated for an approved production test user
+- Google-authenticated session persistence, logout, and repeat login validated
+- Canonical team repository advanced through pull request #8 to `46c0981`
+- Team and fork CI passed for `46c0981`
+- GitHub Actions were updated to `actions/checkout@v6` and `actions/setup-node@v6`
+- Workflow jobs continue to install and test the application with Node.js 22
+- GitHub's JavaScript actions execute using their current Node.js 24 action runtime
+
+Still pending:
+
+- Live eBay Browse API responses as the selected graded third-party integration
+- Live YouTube Data API responses only if the optional secondary signal is retained
+- Automatic or otherwise unambiguous production deployment triggered by a push or merge to `main`
+- Final Lighthouse, presentation, endpoint-demo, and submission evidence
+
+The historical controlled application promotions at `ceeb76f` and `3b833ed` passed direct and
+proxied health checks. Pull requests #7 and #8 changed documentation and workflow configuration,
+so the currently validated live application code remains based on `3b833ed`.
 
 ## Reproduction
 

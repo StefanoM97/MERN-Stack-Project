@@ -1,6 +1,6 @@
 # Testing Checklist
 
-**Last updated:** July 22, 2026
+**Last updated:** July 23, 2026
 
 ## Automated validation
 
@@ -88,8 +88,8 @@ Latest verified server coverage:
 - [x] Confirm the fallback response succeeds
 - [x] Confirm an interest snapshot is stored
 - [x] Confirm the latest saved snapshot loads on the detail page
-- [ ] Validate live eBay results with production credentials
-- [ ] Validate live YouTube results with a production API key
+- [ ] Validate live eBay results with production credentials as the selected graded third-party API
+- [ ] Validate live YouTube results only if the optional secondary signal is retained
 
 ### Responsive interface
 
@@ -100,7 +100,9 @@ Latest verified server coverage:
 - [x] Confirm navigation remains usable
 - [x] Confirm forms remain usable
 - [x] Confirm no overlap, clipping, or unreadable content
-- [ ] Run formal Lighthouse accessibility/performance review
+- [ ] Reach at least 95 for desktop performance, accessibility, and best practices
+- [ ] Reach at least 95 for mobile performance and accessibility
+- [ ] Export and retain the final Lighthouse reports
 - [ ] Test additional physical devices and browsers
 
 ## Deployment smoke testing
@@ -137,9 +139,9 @@ sudo systemctl status apache2
 - [x] SMTP verification email is delivered
 - [x] SMTP password-reset email is delivered
 - [x] Verification and reset tokens are removed from the browser URL and HTTP referrer
-- [ ] Google Sign-In succeeds
-- [ ] eBay integration succeeds
-- [ ] YouTube integration succeeds
+- [x] Google Sign-In succeeds for an approved production test user
+- [ ] eBay integration succeeds with live production credentials
+- [ ] YouTube integration succeeds only if the optional signal is retained
 - [ ] Backup and restore procedure succeeds
 
 ## Repository and submission checklist
@@ -155,10 +157,14 @@ sudo systemctl status apache2
 - [x] Push the feature branch
 - [x] Confirm GitHub Actions CI passes
 - [x] Open or merge the pull request
-- [x] Verify team and fork post-merge CI
+- [x] Verify team and fork post-merge CI through canonical commit `46c0981`
 - [x] Verify deployment validation and safely skipped production promotion
-- [ ] Capture final screenshots or demo recording
-- [ ] Confirm team contribution documentation
+- [ ] Demonstrate or capture deployment triggered by a push or merge to `main`
+- [ ] Export final desktop and mobile Lighthouse reports
+- [ ] Prepare one API endpoint demonstration with Postman, Bruno, or SwaggerHub
+- [ ] Capture final screenshots or backup demo recording
+- [ ] Confirm factual team contribution documentation
+- [ ] Complete and rehearse the 10-minute PowerPoint and application demonstration
 - [ ] Submit repository and deployment links
 
 ## Test database safety

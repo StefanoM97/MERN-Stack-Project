@@ -20,8 +20,9 @@ As of July 23, 2026:
 - Formal Jest coverage is 75.06% statements, 56.19% branches, 74.28% functions, and 78.32% lines.
 - The TypeScript/Vite production build passes.
 - Manual desktop and mobile workflow tests pass at widths down to 320 pixels.
-- Pull requests #1 through #6 merged successfully into the team `main` branch; the current production release is `3b833ed`.
-- Team and fork post-merge CI passed; deployment validation passed and production promotion remained gated.
+- Pull requests #1 through #8 merged successfully into the team `main` branch; the canonical repository release is `46c0981`.
+- The live application code remains validated from `3b833ed`; pull requests #7 and #8 changed documentation and GitHub Actions configuration only.
+- Team and fork post-merge CI passed for `46c0981`; deployment validation passed and production promotion remained gated.
 
 See [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) for the implemented feature matrix,
 remaining deliverable work, and longer-term production work.
@@ -66,7 +67,7 @@ remaining deliverable work, and longer-term production work.
 - GitHub Actions continuous-integration workflow
 - PM2 deployment configuration
 - Apache-compatible deployed architecture; Nginx configuration is also included as an alternative
-- OpenAPI and Postman starter artifacts
+- OpenAPI 3.0 documentation for all 19 operations and a Postman demonstration collection
 
 ## Live production deployment
 
@@ -85,28 +86,31 @@ that are removed from the address bar before API requests are made.
 Google Sign-In is configured and validated in production for approved Google Auth Platform test users.
 The Google application currently remains External with Testing publishing status.
 
-The following live integrations remain unconfigured:
+The following live third-party data integrations remain unconfigured:
 
-- Live eBay API credentials
-- Live YouTube Data API credentials
+- Live eBay Browse API credentials — selected graded integration
+- Live YouTube Data API credentials — optional secondary signal
 
-Interest checks continue with internal data when external API credentials are unavailable.
+The current rubric requires one relevant third-party API. Interest checks continue with
+internal data when external API credentials are unavailable.
 
 ## Remaining work
 
 ### Before this deliverable is finalized
 
-- Add final submission screenshots, demo evidence, and team attribution required by the rubric
-- Configure and validate the required live eBay and YouTube integrations
-- Complete the required Flutter client
+- Synchronize the repository documentation with the current assignment page and grading rubric
+- Configure and validate at least one relevant live third-party API; eBay is the selected integration
+- Make deployment on a push or merge to `main` unambiguous and capture workflow evidence
+- Reach the required desktop and mobile Lighthouse thresholds
+- Prepare the API endpoint demonstration, final application demo, team attribution, and PowerPoint
 - Submit the repository and deployment link in the required course format
 
 ### Before a production release
 
-- Configure eBay and YouTube credentials
+- Configure eBay credentials; configure YouTube only if it is retained as an optional signal
 - Add production monitoring, backups, log rotation, and deployment-user hardening
 - Add managed image upload/storage instead of image URLs
-- Complete accessibility/Lighthouse review and broader browser testing
+- Complete broader browser and physical-device testing beyond the required Lighthouse review
 
 Payments, shipping, auctions, transaction settlement, and real-time chat remain intentionally
 outside the prototype scope unless the project requirements are expanded.

@@ -1,6 +1,6 @@
 # Alignment with the CIS 4004 Reference Application
 
-**Last updated:** July 15, 2026
+**Last updated:** July 23, 2026
 **ReuseHub status:** Core MERN prototype implemented, deployed, and validated
 
 ## Purpose of this document
@@ -31,10 +31,10 @@ The goal is architectural alignment rather than a line-for-line copy of the refe
 | SQL tables and queries | Mongoose schemas, models, indexes, and model queries | Intentional MongoDB substitution |
 | User-owned CRUD resources | Inventory items associated with their owner | Implemented and tested |
 | Protected data access | Owner authorization plus private, school, and public visibility rules | Implemented and tested |
-| External API/service layer | eBay, YouTube, SMTP, and Google authentication service integration points | Implemented in code; live credentials partly pending |
+| External API/service layer | eBay, optional YouTube, SMTP, and Google authentication service integration points | SMTP and Google validated live; eBay selected for graded validation; YouTube optional |
 | Automated backend testing | Jest, Supertest, MongoDB Memory Server, and mocked Express routers | Implemented; 8 suites and 21 tests pass |
 | Browser production build | TypeScript compilation and Vite production build | Implemented and verified |
-| Continuous integration | GitHub Actions workflow for install, lint, test, and build | Team and fork post-merge CI passed for production release `ceeb76f` |
+| Continuous integration | GitHub Actions workflow for install, lint, test, and build | Team and fork post-merge CI passed through canonical repository commit `46c0981` |
 | Cloud deployment | DigitalOcean, MongoDB Atlas, PM2, and reverse proxy | Implemented with Apache in the current deployment |
 | Configuration templates | Root, client, and server lock files plus `.env.example` templates | Implemented |
 | API documentation | OpenAPI 3.0 contract and Postman v2.1 demonstration collection | Completed for all 19 implemented operations |
@@ -51,7 +51,7 @@ The reference application's financial resources are replaced with reuse-oriented
 | Transactions | Item status and reuse decisions |
 | Categories | Keywords, condition, visibility, and status fields |
 | Dashboard summaries | Inventory and community discovery views |
-| Currency/external data | eBay and YouTube interest signals |
+| Currency/external data | eBay value signal with optional YouTube interest signal |
 | User profile | Contact-sharing and community settings |
 
 ReuseHub therefore demonstrates the same request flow:
@@ -92,7 +92,7 @@ ReuseHub therefore demonstrates the same request flow:
 - Inventory statuses for keeping, lending, giving away, selling, and donating
 - Public and school community search
 - Internal search/keyword interest signals
-- eBay and YouTube external-interest adapters
+- eBay external-value adapter and optional YouTube interest adapter
 - Stored interest snapshots and history
 - Automatic loading of the latest stored interest snapshot on the detail page
 
@@ -140,8 +140,8 @@ Jest, Supertest, and MongoDB Memory Server. All 8 suites and 21 tests pass. Form
 is 75.06% statements, 56.19% branches, 74.28% functions, and 78.32% lines. Core browser workflows
 were tested manually on desktop and mobile widths.
 
-Automated browser end-to-end tests remain a reasonable future enhancement, especially if Cypress
-coverage similar to the reference project is expected by the final rubric.
+Automated browser end-to-end tests remain a reasonable future enhancement, but the current
+grading rubric specifically accepts Jest or Vitest evidence and does not require Cypress.
 
 ### Apache instead of Nginx in the validated deployment
 
@@ -204,18 +204,20 @@ Manual validation has covered:
 - Live SMTP verification and password-reset delivery through Brevo
 - One-time verification and reset token processing
 - Sensitive verification and reset tokens removed from browser URLs and HTTP referrers
+- Google OAuth popup login, session persistence, logout, and repeat login validated in production
 
 ## Alignment gaps and remaining work
 
-The core architectural goals are met. The following work remains before a hardened production
-release or a broader course submission:
+The core architectural goals are met. The following work remains before final course submission
+or a broader hardened production release:
 
-- Add automated browser end-to-end tests if required
-- Configure and validate Google Sign-In
-- Configure and validate live eBay and YouTube responses
-- Add managed image upload/storage rather than relying only on image URLs
-- Complete Lighthouse/accessibility and additional browser testing
-- Complete any presentation, demonstration, attribution, or mobile deliverables required by the rubric
+- Configure and validate live eBay responses as the selected graded third-party API
+- Make deployment on a push or merge to `main` unambiguous and retain workflow evidence
+- Reach at least 95 for desktop performance, accessibility, and best practices
+- Reach at least 95 for mobile performance and accessibility
+- Prepare the endpoint demonstration, PowerPoint, team contribution record, and complete application demo
+- Add managed image upload/storage as an optional production enhancement
+- Add automated browser end-to-end tests as an optional future enhancement
 
 ## Scope boundaries
 

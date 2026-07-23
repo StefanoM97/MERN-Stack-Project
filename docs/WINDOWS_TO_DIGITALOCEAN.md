@@ -1,6 +1,6 @@
 # Windows 11 to DigitalOcean: ReuseHub Implementation and Deployment Guide
 
-**Last updated:** July 22, 2026
+**Last updated:** July 23, 2026
 **Current validated deployment:** Ubuntu 24.04, Apache, PM2, MongoDB Atlas, React production build, DuckDNS, and HTTPS
 
 ## Read this first
@@ -24,15 +24,20 @@ into documentation, screenshots, chat messages, Git commits, or terminal logs.
 
 ```text
 Existing LAMP application
-  -> Apache :80
+  -> Apache default site on port 80
 
-ReuseHub
-  -> Apache :8080
+ReuseHub public application
+  -> HTTPS port 443
+  -> HTTP port 80 redirects to HTTPS
+  -> Apache name-based virtual host
      -> /var/www/reusehub/client/dist
      -> /api/ proxied to http://127.0.0.1:5000/api/
         -> PM2 process: reusehub-api
            -> Express
               -> MongoDB Atlas
+
+ReuseHub fallback
+  -> Apache port 8080
 ```
 
 Verified state:
@@ -42,7 +47,7 @@ Verified state:
 - npm 10.9.8
 - PM2 process `reusehub-api`
 - Express bound to `127.0.0.1:5000`
-- Apache virtual host listening on port 8080
+- Apache name-based virtual host on ports 80 and 443, with port 8080 retained as a fallback
 - Existing LAMP site preserved on port 80
 - MongoDB Atlas persistence
 - PM2 startup restoration after reboot
@@ -50,8 +55,9 @@ Verified state:
 - 8 automated suites and 21 tests passing
 - TypeScript/Vite production build passing
 
-The current deployment is suitable for prototype demonstration, but it is still using HTTP and
-development-mode application settings.
+The public deployment now uses HTTPS and production-mode application settings. Remaining
+work concerns the graded external API, automatic main-push deployment evidence, operational
+hardening, Lighthouse reports, and final presentation packaging.
 
 # Part I — Prepare and test on Windows 11
 
@@ -588,11 +594,11 @@ Production testing confirmed verification-email delivery, password-reset deliver
 one-time token processing, fragment-token removal from browser URLs and referrers,
 successful login after verification, and rejection of the old password after reset.
 
-Remaining production-service configuration:
+Current production-service status:
 
-- Google web client origins
-- eBay Browse API credentials
-- YouTube Data API key and quota restrictions
+- Google web-client origin and backend ID-token validation are configured and production-tested
+- eBay Browse API credentials and live responses remain required for the selected graded integration
+- YouTube Data API configuration is optional and should be retained only if the secondary signal is used
 
 Do not place service credentials in client code. eBay, YouTube, SMTP, Atlas, and JWT credentials
 belong only in the server environment.
@@ -608,7 +614,7 @@ Before treating the deployment as production-ready:
 - Add uptime monitoring and alerting
 - Back up MongoDB Atlas
 - Document rollback and restore procedures
-- Run Lighthouse and accessibility checks
+- Reach at least 95 for desktop performance, accessibility, and best practices, and at least 95 for mobile performance and accessibility
 - Add browser end-to-end tests
 - Test multiple browsers and physical devices
 - Review rate limits and abuse controls
@@ -644,7 +650,7 @@ than a Git working tree.
 
 ## 24. GitHub Actions CI
 
-The CI workflow is ready to run after the branch is pushed. Confirm that it completes:
+The CI workflow runs for pull requests and repository updates. Confirm that it completes:
 
 - Root `npm ci`
 - Server `npm ci`
@@ -653,19 +659,27 @@ The CI workflow is ready to run after the branch is pushed. Confirm that it comp
 - Tests
 - Production build
 
+Workflow jobs install and test the application with Node.js 22. `actions/checkout@v6` and
+`actions/setup-node@v6` use GitHub's current Node.js 24 JavaScript action runtime.
+
 Do not merge a failing workflow.
 
 ## 25. GitHub Actions deployment
 
-The deployment workflow first runs the complete lint, test, and production-build validation. The
-production-promotion job is gated behind a manual workflow dispatch or `DEPLOY_ENABLED=true` and
-requires the deployment host, user, and SSH-key secrets. When enabled, it uploads a staged release
-and invokes the Apache-compatible `deploy/deploy-update.sh` script.
+The deployment workflow first runs lint, tests, and the production build. The staged promotion
+uses the Apache-compatible `deploy/deploy-update.sh` script, performs health checks, and can
+roll back after a failed promotion.
 
-Keep production promotion gated until a least-privilege deployment account and reviewed repository
-secrets are configured.
+The current production-promotion job remains gated behind manual workflow dispatch or
+`DEPLOY_ENABLED=true` and requires deployment host, user, and SSH-key secrets. This protects
+production while the least-privilege deployment account and reviewed repository secrets are
+finalized.
 
-Required SSH secrets must be stored in GitHub repository secrets, never committed.
+For the current course requirement, deployment triggered by a push or merge to `main` still must
+be made unambiguous and demonstrated. Pull requests should continue to run validation only and
+must not receive production deployment secrets.
+
+Required SSH secrets must be stored in GitHub repository secrets and must never be committed.
 
 # Troubleshooting
 
@@ -743,8 +757,10 @@ Run the exact startup command generated by PM2 for the account that owns the pro
 - [x] Add a domain and HTTPS
 - [x] Enable secure cookies and production mode
 - [x] Configure and validate SMTP
-- [ ] Configure Google Sign-In
-- [ ] Configure live eBay and YouTube credentials
+- [x] Configure and validate Google Sign-In
+- [ ] Configure and validate live eBay credentials; configure YouTube only if the optional signal is retained
 - [ ] Convert routine deployment to a non-root account
 - [x] Adapt deployment scripts and workflow for Apache
+- [ ] Enable and demonstrate deployment triggered by a push or merge to `main`
+- [ ] Export the required desktop and mobile Lighthouse reports
 - [ ] Add monitoring, backups, and rollback procedures

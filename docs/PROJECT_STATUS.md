@@ -1,7 +1,7 @@
 # ReuseHub Project Status
 
 **Status date:** July 23, 2026
-**Current phase:** Google Sign-In production validation complete on release `3b833ed`; eBay, YouTube, Flutter, and final submission packaging remain
+**Current phase:** Course-requirements synchronization on canonical repository release `46c0981`; live eBay validation, main-push deployment evidence, Lighthouse, and presentation packaging remain
 
 ## Status summary
 
@@ -11,7 +11,7 @@ against MongoDB Atlas on a DigitalOcean Ubuntu server.
 
 The project is not yet a fully hardened production release. The public deployment now uses
 HTTPS, production-mode secure cookies, a production-only CORS origin, and live SMTP delivery.
-Google Sign-In and SMTP are configured and validated in production. eBay and YouTube production credentials have not yet been configured.
+Google Sign-In and SMTP are configured and validated in production. The current rubric requires one relevant third-party API; eBay is the selected graded integration, while YouTube remains optional.
 
 | Scope | Current status |
 |---|---|
@@ -20,11 +20,11 @@ Google Sign-In and SMTP are configured and validated in production. eBay and You
 | Manual workflow testing | Complete for core workflows |
 | Mobile responsiveness | Verified at 390 px and 320 px |
 | Persistent cloud deployment | Working |
-| GitHub repository submission | Latest production fix merged through pull request #6 at `3b833ed` |
-| GitHub Actions CI execution | Team and fork post-merge CI passed |
+| GitHub repository submission | Pull requests #1 through #8 merged; canonical team `main` is `46c0981` |
+| GitHub Actions CI execution | Team and fork post-merge CI passed for `46c0981` |
 | Production HTTPS | Configured and validated at `https://reusehub.duckdns.org` |
-| Live external integrations | SMTP and Google Sign-In live and validated; eBay and YouTube pending |
-| Final course evidence/presentation | Pending rubric confirmation and packaging |
+| Live external integrations | SMTP and Google Sign-In live; eBay selected for graded live validation; YouTube optional |
+| Final course evidence/presentation | Current requirements confirmed; Lighthouse, CI/CD evidence, endpoint demo, presentation, and submission packaging remain |
 
 ## Implemented and verified
 
@@ -97,6 +97,7 @@ successful repeat login for an approved Google Auth Platform test user.
 
 **Deployment note:** internal/fallback behavior has been validated. Live responses from eBay
 and YouTube have not been validated because production API credentials are not configured.
+eBay is the selected graded integration; YouTube is an optional secondary signal.
 
 ### 6. Frontend and responsive behavior
 
@@ -128,8 +129,8 @@ The exact sanitized Git working tree has passed:
 
 - Server ESLint
 - Client ESLint
-- 7 Jest test suites
-- 18 total tests
+- 8 Jest test suites
+- 21 total tests
 - Mocked Express app tests for router mounts, security headers, CORS, malformed JSON, and 404 handling
 - Formal coverage: 75.06% statements, 56.19% branches, 74.28% functions, and 78.32% lines
 - Authentication integration tests
@@ -179,7 +180,7 @@ The exact sanitized Git working tree has passed:
 | eBay Browse API | Implemented | No credentials; fallback tested |
 | YouTube Data API | Implemented | No API key; fallback tested |
 | GitHub Actions CI | Workflow included | Team and fork post-merge CI passed |
-| GitHub Actions deployment | Staged Apache/PM2 workflow included | Validation passed; Actions promotion remains gated; controlled manual promotion of `3b833ed` succeeded |
+| GitHub Actions deployment | Staged Apache/PM2 workflow included | Workflow updated through `46c0981`; validation passed; production promotion remains gated; latest controlled application promotion `3b833ed` succeeded |
 | Nginx deployment | Configuration included | Current server uses Apache instead |
 | Production secure cookie | Supported | Enabled and browser-validated over HTTPS |
 | HTTPS | Configured | DuckDNS hostname, trusted certificate, redirects, and renewal validated |
@@ -188,11 +189,12 @@ The exact sanitized Git working tree has passed:
 
 These items are repository/submission tasks rather than missing core application workflows:
 
-1. Capture final screenshots or a demo recording required by the course rubric.
-2. Update team attribution and task ownership.
-3. Configure and validate the eBay and YouTube integrations required by the rubric.
-4. Complete the required Flutter client.
-5. Submit the repository URL, deployment URL, and required supporting documents.
+1. Finish synchronizing the project documentation with the current assignment and rubric.
+2. Configure and validate the live eBay Browse API as the graded third-party integration.
+3. Make deployment on a push or merge to `main` unambiguous and capture CI/CD evidence.
+4. Reach the required desktop and mobile Lighthouse scores and export the reports.
+5. Prepare the API endpoint demonstration, complete application demo, team contribution record, and PowerPoint.
+6. Submit the repository URL, deployment URL, and required supporting documents.
 
 ## Remaining work for the total project or a production release
 
@@ -208,14 +210,14 @@ These items are repository/submission tasks rather than missing core application
 - Replace the verified Gmail-based sender with an authenticated custom-domain sender for stronger branding and deliverability.
 - Move the Google Auth Platform application from Testing to Production when broader public access is required.
 - Configure and validate eBay Browse API credentials.
-- Configure and validate YouTube Data API credentials.
+- Configure YouTube Data API credentials only if the optional secondary signal is retained.
 - Add retry, quota, and user-facing failure handling based on live provider behavior.
 
 ### Product and user experience
 
 - Add managed image upload and cloud object storage.
 - Add image validation, resizing, and deletion lifecycle.
-- Run Lighthouse and a formal accessibility review.
+- Reach at least 95 for desktop performance, accessibility, and best practices, and at least 95 for mobile performance and accessibility.
 - Test additional browsers and physical mobile devices.
 - Add pagination or infinite scrolling for larger inventories.
 - Add improved search ranking, filtering, and sorting.
@@ -231,17 +233,19 @@ These items are repository/submission tasks rather than missing core application
 
 ### Course-level artifacts
 
-Depending on the final course rubric, the total project may still require:
+The current assignment page and grading rubric require:
 
-- Final presentation slides
-- Live or recorded demonstration
-- Architecture/database diagrams
-- Individual contribution record
-- Installation/deployment evidence
-- Mobile-client work or a separate mobile deliverable
+- A professional PowerPoint with a title page and team-contribution page
+- A complete remote HTTPS application demonstration
+- New-user registration, email verification, Google OAuth, and third-party API evidence
+- Lighthouse results
+- CI/CD pipeline and unit/integration test results
+- At least one API endpoint demonstrated with Postman, Bruno, or SwaggerHub
+- A factual individual contribution record
+- Repository and deployment links in the required course locations
 
-These course artifacts should be verified against the current syllabus and assignment page
-rather than treated as completed software features.
+Older supplemental references to Flutter, diagrams, Gantt charts, and wireframes are not
+confirmed as current requirements. See `docs/COURSE_REQUIREMENTS_AUDIT.md`.
 
 ## Intentionally outside the prototype scope
 
@@ -258,6 +262,6 @@ The following are not considered incomplete defects unless the approved scope ch
 ## Completion interpretation
 
 - **Core prototype workflow:** complete and validated
-- **Current deliverable packaging:** GitHub work complete; live integrations, Flutter, and submission evidence remain
+- **Current deliverable packaging:** core application complete; live eBay validation, deployment evidence, Lighthouse, presentation, and submission work remain
 - **Production readiness:** HTTPS foundation complete; live services and operations hardening remain
 - **Expanded product vision:** optional features remain based on course or stakeholder requirements
