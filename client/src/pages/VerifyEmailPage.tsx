@@ -1,27 +1,45 @@
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
+import {
+  readSensitiveLinkToken,
+  removeSensitiveLinkTokenFromAddressBar
+} from "../utils/linkToken";
 
 export function VerifyEmailPage() {
-  const [params] = useSearchParams();
+  const [token] = useState<string | null>(
+    () => readSensitiveLinkToken()
+  );
   const [message, setMessage] = useState("Verifying…");
+  const submitted = useRef(false);
   const { refresh } = useAuth();
 
   useEffect(() => {
-    const token = params.get("token");
+    removeSensitiveLinkTokenFromAddressBar();
+  }, []);
+
+  useEffect(() => {
     if (!token) {
       setMessage("Verification token is missing.");
       return;
     }
 
-    api("/auth/verify-email", { method: "POST", body: JSON.stringify({ token }) })
+    if (submitted.current) return;
+    submitted.current = true;
+
+    void api("/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ token })
+    })
       .then(async () => {
         await refresh();
         setMessage("Email verified. Your account is ready.");
       })
-      .catch((error: Error) => setMessage(error.message));
-  }, [params, refresh]);
+      .catch((error: Error) => {
+        setMessage(error.message);
+      });
+  }, [token, refresh]);
 
   return (
     <section className="narrow">

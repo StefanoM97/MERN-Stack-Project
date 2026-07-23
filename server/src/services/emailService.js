@@ -16,12 +16,20 @@ function createTransporter() {
 
 async function send({ to, subject, text, html, previewUrl }) {
   if (!isConfigured()) {
-  if (!env.isTest) {
-    console.log(`\n[DEVELOPMENT EMAIL]\nTo: ${to}\nSubject: ${subject}\n${text}\n`);
+    if (env.isProduction) {
+      console.error("[EMAIL] SMTP is not configured; message was not sent");
+      return { developmentPreview: false };
+    }
+
+    if (!env.isTest) {
+      console.log(
+        `\n[DEVELOPMENT EMAIL]\nTo: ${to}\nSubject: ${subject}\n${text}\n`
+      );
+    }
+
+    return { developmentPreview: true, previewUrl };
   }
 
-  return { developmentPreview: true, previewUrl };
-}
   await createTransporter().sendMail({
     from: env.smtp.from,
     to,
@@ -33,7 +41,7 @@ async function send({ to, subject, text, html, previewUrl }) {
 }
 
 export function sendVerificationEmail(user, rawToken) {
-  const url = `${env.appUrl}/verify-email?token=${encodeURIComponent(rawToken)}`;
+  const url = `${env.appUrl}/verify-email#token=${encodeURIComponent(rawToken)}`;
   return send({
     to: user.email,
     subject: "Verify your ReuseHub email",
@@ -44,7 +52,7 @@ export function sendVerificationEmail(user, rawToken) {
 }
 
 export function sendPasswordResetEmail(user, rawToken) {
-  const url = `${env.appUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
+  const url = `${env.appUrl}/reset-password#token=${encodeURIComponent(rawToken)}`;
   return send({
     to: user.email,
     subject: "Reset your ReuseHub password",
