@@ -1,7 +1,7 @@
 # ReuseHub Project Status
 
-**Status date:** July 22, 2026
-**Current phase:** Completion work merged into team `main` with post-merge CI verified; live integrations, Flutter, and final submission packaging remain
+**Status date:** July 23, 2026
+**Current phase:** SMTP production validation complete on release `ceeb76f`; Google, eBay, YouTube, Flutter, and final submission packaging remain
 
 ## Status summary
 
@@ -10,8 +10,8 @@ community-discovery, privacy, and interest-signal scope. It has been deployed an
 against MongoDB Atlas on a DigitalOcean Ubuntu server.
 
 The project is not yet a fully hardened production release. The public deployment now uses
-HTTPS, production-mode secure cookies, and a production-only CORS origin. SMTP, Google, eBay,
-and YouTube production credentials have not yet been configured.
+HTTPS, production-mode secure cookies, a production-only CORS origin, and live SMTP delivery.
+Google, eBay, and YouTube production credentials have not yet been configured.
 
 | Scope | Current status |
 |---|---|
@@ -20,10 +20,10 @@ and YouTube production credentials have not yet been configured.
 | Manual workflow testing | Complete for core workflows |
 | Mobile responsiveness | Verified at 390 px and 320 px |
 | Persistent cloud deployment | Working |
-| GitHub repository submission | Pull request #1 merged into team `main` at `4015240` |
+| GitHub repository submission | Latest production fix merged through pull request #4 at `ceeb76f` |
 | GitHub Actions CI execution | Team and fork post-merge CI passed |
 | Production HTTPS | Configured and validated at `https://reusehub.duckdns.org` |
-| Live external integrations | Not yet configured |
+| Live external integrations | SMTP live and validated; Google, eBay, and YouTube pending |
 | Final course evidence/presentation | Pending rubric confirmation and packaging |
 
 ## Implemented and verified
@@ -43,9 +43,10 @@ and YouTube production credentials have not yet been configured.
 - Authentication route rate limiting
 - Input validation and centralized error handling
 
-**Deployment note:** verification and reset messages currently use development preview
-behavior because SMTP is not configured. Token-bearing preview output is suppressed while
-automated tests run.
+**Deployment note:** production verification and reset messages are delivered through Brevo
+SMTP relay on port `2525`. Live browser testing confirmed one-time token processing, successful
+login after verification, password replacement, and removal of sensitive tokens from the
+address bar and HTTP referrers. Development previews remain available only outside production.
 
 ### 2. User profile and privacy
 
@@ -156,17 +157,20 @@ The exact sanitized Git working tree has passed:
 - Express runs with `NODE_ENV=production`
 - Secure HTTP-only cookies validated in Chrome with `SameSite=Lax`
 - Production CORS restricted to `https://reusehub.duckdns.org`
+- Brevo SMTP relay authentication and delivery validated on port `2525`
+- Verification and password-reset emails validated end to end over HTTPS
+- Sensitive verification/reset tokens removed from browser URLs and HTTP referrers
 
-## Implemented in code but not configured or fully validated live
+## Integration and release status
 
 | Capability | Code status | Current deployment status |
 |---|---|---|
-| SMTP email delivery | Implemented | No SMTP credentials; development preview used |
+| SMTP email delivery | Implemented and tested | Brevo relay configured; verification and reset delivery validated live |
 | Google Sign-In | Integration points implemented | No Google client ID; live sign-in not tested |
 | eBay Browse API | Implemented | No credentials; fallback tested |
 | YouTube Data API | Implemented | No API key; fallback tested |
 | GitHub Actions CI | Workflow included | Team and fork post-merge CI passed |
-| GitHub Actions deployment | Staged Apache/PM2 workflow included | Validation passed; production promotion skipped because deployment remains gated |
+| GitHub Actions deployment | Staged Apache/PM2 workflow included | Validation passed; Actions promotion remains gated; controlled manual promotion of `ceeb76f` succeeded |
 | Nginx deployment | Configuration included | Current server uses Apache instead |
 | Production secure cookie | Supported | Enabled and browser-validated over HTTPS |
 | HTTPS | Configured | DuckDNS hostname, trusted certificate, redirects, and renewal validated |
@@ -177,7 +181,7 @@ These items are repository/submission tasks rather than missing core application
 
 1. Capture final screenshots or a demo recording required by the course rubric.
 2. Update team attribution and task ownership.
-3. Configure and validate the Google, SMTP, eBay, and YouTube integrations required by the rubric.
+3. Configure and validate the Google, eBay, and YouTube integrations required by the rubric.
 4. Complete the required Flutter client.
 5. Submit the repository URL, deployment URL, and required supporting documents.
 
@@ -192,7 +196,7 @@ These items are repository/submission tasks rather than missing core application
 
 ### External services
 
-- Configure a production SMTP provider and sender domain.
+- Replace the verified Gmail-based sender with an authenticated custom-domain sender for stronger branding and deliverability.
 - Configure and validate Google Sign-In.
 - Configure and validate eBay Browse API credentials.
 - Configure and validate YouTube Data API credentials.
